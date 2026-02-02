@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIeTE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<style>
+:root {
+    --bg-primary: #000000;
+    --glass-bg: rgba(18, 18, 18, 0.75);
+    --glass-bg-hover: rgba(18, 18, 18, 0.85);
+    --glass-blur: blur(24px) saturate(180%) brightness(0.8);
+    --border-glass: rgba(255, 255, 255, 0.18);
+    --border-glass-strong: rgba(255, 255, 255, 0.25);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --shadow-elevation: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --gradient-primary: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --radius-xl: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+body {
+    width: 100vw; height: 100vh;
+    background: var(--bg-primary);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+#container { width: 100%; height: 100%; position: relative; }
+
+#canvasBw, #canvas3d { transform: scaleX(-1); }
+
+#canvasBw {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; z-index: 1.5; 
+    display: none; 
+}
+
+#video {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: 0; 
+}
+
+#canvas3d {
+    width: 100%; height: 100%;
+    display: block; position: relative; z-index: 2; 
+}
+
+#text-toggle-btn {
+    position: fixed; 
+    bottom: 30px; 
+    left: 30px; 
+    width: 56px; 
+    height: 56px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 24px; font-weight: 700;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    z-index: 3001;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+}
+
+#text-toggle-btn:hover {
+    background: var(--glass-bg-hover);
+    transform: translateY(-4px);
+    border-color: var(--text-primary);
+}
+
+#text-toggle-btn.active {
+    background: rgba(147, 112, 219, 0.4);
+    border-color: #b08ee6;
+    box-shadow: 0 0 20px rgba(147, 112, 219, 0.3);
+}
+
+#input-container {
+    position: fixed;
+    bottom: 30px; 
+    left: 106px;
+    right: 30px;
+    z-index: 3000;
+    pointer-events: all;
+    display: flex;
+    align-items: flex-end; 
+}
+
+#textInput {
+    width: 100%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 16px 20px;
+    outline: none;
+    transition: all 0.3s var(--ease-smooth);
+    resize: none; 
+    height: 56px;
+    box-shadow: var(--shadow-elevation);
+    overflow: hidden;
+    line-height: 22px;
+}
+
+#textInput:focus {
+    background: var(--glass-bg-hover);
+    border-color: var(--border-glass-strong);
+    height: 100px; 
+}
+
+#textInput::placeholder { color: var(--text-secondary); }
+
+#textModeContainer {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--border-glass);
+    padding: 32px;
+    max-width: 90vw; max-height: 80vh;
+    overflow: auto; display: none; z-index: 2000;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-elevation);
+}
+
+#textModeContainer.active { display: block; }
+
+#textModeContent {
+    color: var(--text-primary);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    outline: none;
+    min-height: 200px;
+}
+
+#menu-toggle, #back-button {
+    position: fixed; top: 30px; width: 48px; height: 48px;
+    background: var(--glass-bg); backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass); border-radius: 50%;
+    cursor: pointer; z-index: 3001;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+}
+
+#menu-toggle { right: 30px; }
+#back-button { left: 30px; }
+
+#menu-toggle:hover, #back-button:hover {
+    background: var(--glass-bg-hover);
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--text-primary);
+}
+
+#menu-toggle::before { content: '☰'; font-size: 22px; color: var(--text-primary); }
+#menu-toggle.open::before { content: '✕'; }
+#back-button::before { content: '←'; font-size: 24px; color: var(--text-primary); }
+
+#controls {
+    position: fixed; top: 90px; right: 30px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 24px; border-radius: var(--radius-xl); z-index: 3000;
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-elevation);
+    width: 320px; max-height: calc(100vh - 120px); overflow-y: auto;
+    font-family: 'Inter', sans-serif;
+    transition: transform 0.4s var(--ease-smooth), opacity 0.4s var(--ease-smooth);
+}
+
+#controls.hidden {
+    transform: translateX(calc(100% + 40px));
+    opacity: 0;
+    pointer-events: none;
+}
+
+.control-group { margin-bottom: 24px; }
+
+.control-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.control-value {
+    float: right; font-weight: 700; color: var(--text-primary);
+}
+
+.control-slider {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px; cursor: pointer; margin-top: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px;
+    background: var(--text-primary);
+    border-radius: 50%; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+    border: 2px solid rgba(0,0,0,0.1);
+}
+
+.control-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.control-button {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; padding: 14px;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.3s var(--ease-smooth);
+    font-weight: 600;
+    text-transform: none;
+}
+
+.control-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border-color: var(--border-glass-strong);
+}
+
+#toggleBwFace {
+    background: rgba(33, 150, 243, 0.2); 
+    border-color: rgba(33, 150, 243, 0.4);
+    margin-top: 24px; 
+}
+#toggleBwFace:hover { background: rgba(33, 150, 243, 0.35); }
+
+#exportBtn {
+    background: var(--gradient-primary);
+    border: none; color: #fff;
+    margin-top: 16px; 
+    box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
+}
+#exportBtn:hover { box-shadow: 0 8px 32px rgba(167, 139, 250, 0.5); }
+
+#char-counter {
+    position: fixed; 
+    bottom: 96px;
+    left: 30px;
+    width: 56px;
+    padding: 12px 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 100; 
+    pointer-events: none;
+    transition: all 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.counter-current {
+    font-size: 14px;
+    font-weight: 700;
+    color: #A78BFA;
+}
+
+.counter-divider {
+    width: 20px;
+    height: 1px;
+    background: rgba(255,255,255,0.3);
+    margin: 2px 0;
+}
+
+.counter-total {
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+    #controls { width: 100%; height: 50vh; bottom: 0; top: auto; transform: translateY(110%); border-radius: 24px 24px 0 0; }
+    #controls.hidden { transform: translateY(0); } 
+    #input-container { width: calc(100% - 100px); left: 100px; }
+}
+</style>
+</head>
+<body>
+<div id="back-button"></div>
+<div id="container">
+    <canvas id="canvasBw"></canvas>
+    <video id="video" playsinline></video>
+    <div id="canvas3d"></div>
+    
+    <button id="text-toggle-btn" title="Modalità Testo">T</button>
+    
+    <div id="input-container">
+        <textarea id="textInput" placeholder="Descriviti. Le tue parole costruiranno il tuo volto digitale"></textarea>
+    </div>
+
+    <div id="char-counter">
+        <span class="counter-current" id="counter-curr">0</span>
+        <div class="counter-divider"></div>
+        <span class="counter-total">500</span>
+    </div>
+
+    <div id="textModeContainer">
+        <div id="textModeContent" contenteditable="true"></div>
+    </div>
+    
+    <div id="menu-toggle" title="Apri/Chiudi Controlli"></div>
+
+    <div id="controls" class="hidden">
+        <div class="control-group">
+            <label class="control-label">
+                Dimensione caratteri
+                <span id="sizeValue" class="control-value">5</span>
+            </label>
+            <input type="range" id="sizeSlider" class="control-slider" min="1" max="10" step="1" value="5">
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label">
+                Precisione
+                <span id="precisionValue" class="control-value">100%</span>
+            </label> 
+            <input type="range" id="precisionSlider" class="control-slider" min="1" max="100" step="1" value="100">
+        </div>
+        
+        <div class="control-group">
+                <label class="control-label">
+                Maschera
+                <span id="meshOpacityValue" class="control-value">15%</span>
+                </label> 
+            <input type="range" id="meshOpacitySlider" class="control-slider" min="1" max="100" step="1" value="15">
+        </div>
+
+        <button class="control-button" id="toggleBwFace">Mostra Volto</button> 
+        <button class="control-button" id="exportBtn">Esporta</button> 
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<script>
+    let scene, camera, renderer;
+    let charParticles = [];
+    let faceMesh;
+    let videoElement;
+    let cameraInstance; 
+    let currentLandmarks = null;
+    let availableChars = [];
+    let textContent = ''; 
+    let activeLandmarkIndices = [];
+    let isTracking = false;
+    let charSizeMultiplier = 1.167;
+    let isFaceMode = true;
+    let cameraZoom = 2.5;
+    let brightnessData = null;
+    let brightnessCanvas = null;
+    let brightnessCtx = null;
+    let beardMustacheData = null;
+    let trackingPrecision = 1.0; 
+    let showBwFace = false;
+    let bwCanvas = null;
+    let bwCtx = null;
+    let faceWireframe = null; 
+    let meshOpacity = 0.15; 
+    let startTime = Date.now();
+    let jumpAmplitude = 1.5;
+    const ORDER_TIME_MS = 120000; 
+    const MAX_CHARS = 500;
+
+    const BEARD_MUSTACHE_LANDMARKS = {
+        mustache: [164, 167, 393, 391, 205, 425, 2, 326, 423, 391, 322, 410],
+        beard: [172, 136, 150, 149, 176, 148, 152, 377, 400, 378, 379, 365, 397, 288, 361, 323, 454, 356, 389, 251, 284, 332, 297, 338],
+        chin: [152, 175, 199, 200, 176, 148, 171, 396, 428, 262, 431, 422, 424, 418, 421, 313, 18, 83, 182, 106, 43, 57],
+        leftEyebrow: [70, 63, 105, 66, 107, 55, 65, 52, 53, 46],
+        rightEyebrow: [300, 293, 334, 296, 336, 285, 295, 282, 283, 276]
+    };
+
+    function isInDarkFeatureZone(landmarkIndex) {
+        const allDarkFeatures = [
+            ...BEARD_MUSTACHE_LANDMARKS.mustache,
+            ...BEARD_MUSTACHE_LANDMARKS.beard,
+            ...BEARD_MUSTACHE_LANDMARKS.chin,
+            ...BEARD_MUSTACHE_LANDMARKS.leftEyebrow,
+            ...BEARD_MUSTACHE_LANDMARKS.rightEyebrow
+        ];
+        return allDarkFeatures.includes(landmarkIndex);
+    }
+
+    const stopProp = (e) => e.stopPropagation();
+
+    function projectLandmarkToScreen(landmark) {
+        if (!landmark) return { x: 0, y: 0 };
+        const worldPos = new THREE.Vector3(
+            (landmark.x - 0.5) * 6,
+            -(landmark.y - 0.5) * 6,
+            -landmark.z * 6
+        );
+        worldPos.project(camera);
+        const screenX = (worldPos.x + 1) / 2 * window.innerWidth;
+        const screenY = (-worldPos.y + 1) / 2 * window.innerHeight;
+        return { x: screenX, y: screenY };
+    }
+
+    function getScreenBoundingBox(landmarks) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const landmark of landmarks) {
+            if (!landmark) continue;
+            const pos = projectLandmarkToScreen(landmark);
+            minX = Math.min(minX, pos.x);
+            minY = Math.min(minY, pos.y);
+            maxX = Math.max(maxX, pos.x);
+            maxY = Math.max(maxY, pos.y);
+        }
+        const padding = 50; 
+        minX = Math.max(0, minX - padding);
+        minY = Math.max(0, minY - padding);
+        maxX = Math.min(window.innerWidth, maxX + padding);
+        maxY = Math.min(window.innerHeight, maxY + padding);
+        return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+
+    function drawBwFace() {
+        if (!showBwFace || !videoElement || !currentLandmarks || videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+            if (bwCanvas && bwCtx) bwCtx.clearRect(0, 0, bwCanvas.width, bwCanvas.height);
+            return;
+        }
+        if (!bwCanvas || !bwCtx) {
+            bwCanvas = document.getElementById('canvasBw');
+            bwCtx = bwCanvas.getContext('2d', { willReadFrequently: true });
+        }
+        if (!brightnessCanvas) { 
+            brightnessCanvas = document.createElement('canvas');
+            brightnessCtx = brightnessCanvas.getContext('2d', { willReadFrequently: true });
+        }
+        const srcW = videoElement.videoWidth;
+        const srcH = videoElement.videoHeight;
+        brightnessCanvas.width = srcW;
+        brightnessCanvas.height = srcH;
+        brightnessCtx.drawImage(videoElement, 0, 0, srcW, srcH);
+        const screenBox = getScreenBoundingBox(currentLandmarks);
+        let minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (const p of currentLandmarks) {
+            if (p) {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            }
+        }
+        const videoPadding = 0.2;
+        const rangeX = maxX - minX;
+        const rangeY = maxY - minY;
+        minX = Math.max(0, minX - rangeX * videoPadding);
+        maxX = Math.min(1, maxX + rangeX * videoPadding);
+        minY = Math.max(0, minY - rangeY * videoPadding);
+        maxY = Math.min(1, maxY + rangeY * videoPadding);
+        const sX = minX * srcW;
+        const sY = minY * srcH;
+        const sW = (maxX - minX) * srcW;
+        const sH = (maxY - minY) * srcH;
+        bwCanvas.width = window.innerWidth;
+        bwCanvas.height = window.innerHeight;
+        bwCtx.clearRect(0, 0, bwCanvas.width, bwCanvas.height);
+        bwCtx.save();
+        bwCtx.filter = 'grayscale(100%)';
+        bwCtx.drawImage(brightnessCanvas, sX, sY, sW, sH, screenBox.x, screenBox.y, screenBox.w, screenBox.h);
+        bwCtx.restore();
+    }
+
+    function detectBeardMustache(landmarks, brightnessData) {
+        if (!landmarks || !brightnessData) {
+            return {
+                hasMustache: false, hasBeard: false, hasEyebrows: false,
+                mustacheIntensity: 0, beardIntensity: 0, eyebrowIntensity: 0, additionalLandmarks: []
+            };
+        }
+        function getRegionBrightness(landmarkIndices) {
+            let sum = 0;
+            let count = 0;
+            for (let idx of landmarkIndices) {
+                if (landmarks[idx]) {
+                    const brightness = getBrightnessAtLandmark(landmarks[idx], brightnessData);
+                    sum += brightness;
+                    count++;
+                }
+            }
+            return count > 0 ? sum / count : 0.5;
+        }
+        const mustacheBrightness = getRegionBrightness(BEARD_MUSTACHE_LANDMARKS.mustache);
+        const beardBrightness = getRegionBrightness(BEARD_MUSTACHE_LANDMARKS.beard);
+        const chinBrightness = getRegionBrightness(BEARD_MUSTACHE_LANDMARKS.chin);
+        const leftEyebrowBrightness = getRegionBrightness(BEARD_MUSTACHE_LANDMARKS.leftEyebrow);
+        const rightEyebrowBrightness = getRegionBrightness(BEARD_MUSTACHE_LANDMARKS.rightEyebrow);
+        const eyebrowBrightness = (leftEyebrowBrightness + rightEyebrowBrightness) / 2;
+        const foreheadLandmarks = [10, 338, 297, 332, 284, 251, 389, 356, 454];
+        const foreheadBrightness = getRegionBrightness(foreheadLandmarks);
+        const mustacheDarkness = foreheadBrightness - mustacheBrightness;
+        const beardDarkness = foreheadBrightness - beardBrightness;
+        const chinDarkness = foreheadBrightness - chinBrightness;
+        const eyebrowDarkness = foreheadBrightness - eyebrowBrightness;
+        const hasMustache = mustacheDarkness > 0.08;
+        const hasBeard = beardDarkness > 0.07 || chinDarkness > 0.07;
+        const hasEyebrows = eyebrowDarkness > 0.05;
+        const additionalLandmarks = [];
+        if (hasMustache) {
+            const mustacheIntensity = Math.min(1.0, mustacheDarkness / 0.25);
+            const additionalMustachePoints = Math.floor(mustacheIntensity * 25);
+            for (let i = 0; i < additionalMustachePoints; i++) {
+                const randomIdx = BEARD_MUSTACHE_LANDMARKS.mustache[Math.floor(Math.random() * BEARD_MUSTACHE_LANDMARKS.mustache.length)];
+                additionalLandmarks.push(randomIdx);
+            }
+        }
+        if (hasBeard) {
+            const beardIntensity = Math.min(1.0, Math.max(beardDarkness, chinDarkness) / 0.25);
+            const additionalBeardPoints = Math.floor(beardIntensity * 40);
+            const allBeardLandmarks = [...BEARD_MUSTACHE_LANDMARKS.beard, ...BEARD_MUSTACHE_LANDMARKS.chin];
+            for (let i = 0; i < additionalBeardPoints; i++) {
+                const randomIdx = allBeardLandmarks[Math.floor(Math.random() * allBeardLandmarks.length)];
+                additionalLandmarks.push(randomIdx);
+            }
+        }
+        if (hasEyebrows) {
+            const eyebrowIntensity = Math.min(1.0, eyebrowDarkness / 0.2);
+            const additionalEyebrowPoints = Math.floor(eyebrowIntensity * 20);
+            const allEyebrowLandmarks = [...BEARD_MUSTACHE_LANDMARKS.leftEyebrow, ...BEARD_MUSTACHE_LANDMARKS.rightEyebrow];
+            for (let i = 0; i < additionalEyebrowPoints; i++) {
+                const randomIdx = allEyebrowLandmarks[Math.floor(Math.random() * allEyebrowLandmarks.length)];
+                additionalLandmarks.push(randomIdx);
+            }
+        }
+        return {
+            hasMustache, hasBeard, hasEyebrows,
+            mustacheIntensity: hasMustache ? Math.min(1.0, mustacheDarkness / 0.25) : 0,
+            beardIntensity: hasBeard ? Math.min(1.0, Math.max(beardDarkness, chinDarkness) / 0.25) : 0,
+            eyebrowIntensity: hasEyebrows ? Math.min(1.0, eyebrowDarkness / 0.2) : 0,
+            additionalLandmarks
+        };
+    }
+
+    function analyzeVideoFrameBrightness() {
+        if (!videoElement || videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) return null;
+        if (!brightnessCanvas) {
+            brightnessCanvas = document.createElement('canvas');
+            brightnessCtx = brightnessCanvas.getContext('2d', { willReadFrequently: true });
+        }
+        brightnessCanvas.width = videoElement.videoWidth;
+        brightnessCanvas.height = videoElement.videoHeight;
+        brightnessCtx.drawImage(videoElement, 0, 0);
+        const imageData = brightnessCtx.getImageData(0, 0, brightnessCanvas.width, brightnessCanvas.height);
+        const data = imageData.data;
+        const brightnessMap = [];
+        for (let y = 0; y < brightnessCanvas.height; y++) {
+            brightnessMap[y] = [];
+            for (let x = 0; x < brightnessCanvas.width; x++) {
+                const i = (y * brightnessCanvas.width + x) * 4;
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = (r + g + b) / (3 * 255);
+                brightnessMap[y][x] = brightness;
+            }
+        }
+        return { map: brightnessMap, width: brightnessCanvas.width, height: brightnessCanvas.height };
+    }
+
+    function getBrightnessAtLandmark(landmark, brightnessData) {
+        if (!brightnessData) return 0.5;
+        const x = Math.floor(landmark.x * brightnessData.width);
+        const y = Math.floor(landmark.y * brightnessData.height);
+        if (y < 0 || y >= brightnessData.height || x < 0 || x >= brightnessData.width) return 0.5;
+        const kernelSize = 3;
+        let sum = 0;
+        let count = 0;
+        for (let dy = -kernelSize; dy <= kernelSize; dy++) {
+            for (let dx = -kernelSize; dx <= kernelSize; dx++) {
+                const ny = y + dy;
+                const nx = x + dx;
+                if (ny >= 0 && ny < brightnessData.height && nx >= 0 && nx < brightnessData.width) {
+                    sum += brightnessData.map[ny][nx];
+                    count++;
+                }
+            }
+        }
+        return count > 0 ? sum / count : 0.5;
+    }
+
+    function initThreeJS() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, cameraZoom);
+        camera.lookAt(0, 0, 0);
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        renderer.autoClear = false;
+        document.getElementById('canvas3d').appendChild(renderer.domElement);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(0, 0, 10);
+        scene.add(directionalLight);
+        createFaceWireframe();
+        renderer.domElement.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            const delta = e.deltaY > 0 ? 1 : -1;
+            cameraZoom += delta * zoomSpeed;
+            cameraZoom = Math.max(1, Math.min(10, cameraZoom));
+            camera.position.z = cameraZoom;
+        }, { passive: false });
+    }
+
+    function createFaceWireframe() {
+        if (faceWireframe) {
+            scene.remove(faceWireframe);
+            faceWireframe.geometry.dispose();
+            faceWireframe.material.dispose();
+        }
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(468 * 3);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        let tessalationIndices = [];
+        if (typeof FaceMesh !== 'undefined' && FaceMesh.FACEMESH_TESSELATION) {
+            tessalationIndices = FaceMesh.FACEMESH_TESSELATION;
+        }
+        const numIndices = tessalationIndices.length > 0 ? tessalationIndices.length : 1000;
+        const chaoticIndices = [];
+        for (let i = 0; i < numIndices; i++) {
+            chaoticIndices.push(Math.floor(Math.random() * 468));
+        }
+        geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(chaoticIndices), 1));
+        const material = new THREE.LineBasicMaterial({
+            color: 0xff0000, 
+            linewidth: 1,
+            transparent: true,
+            opacity: meshOpacity,
+            depthTest: true,
+            depthWrite: false, 
+        });
+        faceWireframe = new THREE.LineSegments(geometry, material);
+        faceWireframe.frustumCulled = false;
+        scene.add(faceWireframe);
+    }
+
+    function updateFaceWireframe(landmarks) {
+        if (!faceWireframe || !landmarks) return;
+        const elapsed = Date.now() - startTime;
+        const transitionProgress = Math.min(1, elapsed / ORDER_TIME_MS);
+        const r = Math.floor(255 * (1 - transitionProgress));
+        const g = Math.floor(255 * transitionProgress);
+        faceWireframe.material.color.setRGB(r / 255, g / 255, 0);
+        faceWireframe.material.opacity = meshOpacity;
+        if (meshOpacity > 0.002) {
+            const positions = faceWireframe.geometry.attributes.position.array;
+            for (let i = 0; i < 468; i++) {
+                const landmark = landmarks[i];
+                if (landmark) {
+                    positions[i * 3 + 0] = (landmark.x - 0.5) * 6;
+                    positions[i * 3 + 1] = -(landmark.y - 0.5) * 6;
+                    positions[i * 3 + 2] = -landmark.z * 6;
+                } else {
+                    positions[i * 3 + 2] = -1000;
+                }
+            }
+            let tessalationIndices = [];
+            if (typeof FaceMesh !== 'undefined' && FaceMesh.FACEMESH_TESSELATION) {
+                tessalationIndices = FaceMesh.FACEMESH_TESSELATION;
+            }
+            if (transitionProgress >= 1 && tessalationIndices.length > 0) {
+                faceWireframe.geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(tessalationIndices), 1));
+            } else if (tessalationIndices.length > 0) {
+                const currentIndices = [];
+                const numIndices = tessalationIndices.length;
+                for (let i = 0; i < numIndices; i++) {
+                    if (Math.random() > transitionProgress) {
+                        currentIndices.push(Math.floor(Math.random() * 468));
+                    } else {
+                        currentIndices.push(tessalationIndices[i]);
+                    }
+                }
+                faceWireframe.geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(currentIndices), 1));
+            }
+            faceWireframe.geometry.attributes.position.needsUpdate = true;
+            faceWireframe.visible = true;
+        } else {
+            faceWireframe.visible = false;
+        }
+    }
+
+    class CharacterParticle {
+        constructor(char, index) {
+            this.char = char;
+            this.index = index;
+            this.brightness = 0.5; 
+            const offsetScale = 0.05;
+            this.offsetX = (Math.random() - 0.5) * offsetScale;
+            this.offsetY = (Math.random() - 0.5) * offsetScale;
+            this.offsetZ = (Math.random() - 0.5) * offsetScale;
+            this.jumpPhase = Math.random() * Math.PI * 2;
+            this.jumpSpeed = 0.08 + Math.random() * 0.12;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 64;
+            canvas.height = 64;
+            context.fillStyle = '#ffffff';
+            context.font = 'bold 48px Courier New';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(char, 32, 32);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            const material = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 1.0,
+                depthTest: true,
+                depthWrite: true,
+                color: 0xffffff 
+            });
+            this.sprite = new THREE.Sprite(material);
+            this.sprite.scale.set(0.15 * charSizeMultiplier, 0.15 * charSizeMultiplier, 1);
+            scene.add(this.sprite);
+            this.targetPos = new THREE.Vector3();
+            this.currentPos = new THREE.Vector3();
+            this.velocity = new THREE.Vector3();
+            this.baseScale = 0.15;
+        }
+        updateCharacter(newChar) {
+            if (this.char === newChar) return;
+            this.char = newChar;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 64;
+            canvas.height = 64;
+            context.fillStyle = '#ffffff';
+            context.font = 'bold 48px Courier New';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(newChar, 32, 32);
+            this.sprite.material.map.dispose();
+            this.sprite.material.map = new THREE.CanvasTexture(canvas);
+            this.sprite.material.map.needsUpdate = true;
+        }
+        updateBrightness(brightness, landmarkIndex) {
+            let finalBrightness = brightness;
+            if (landmarkIndex !== undefined && isInDarkFeatureZone(landmarkIndex)) {
+                finalBrightness = 1.0 - brightness;
+                finalBrightness = Math.pow(finalBrightness, 0.6) * 0.9;
+            } else {
+                finalBrightness = Math.pow(brightness, 0.8);
+            }
+            this.brightness = finalBrightness;
+            const opacity = Math.max(0.4, Math.min(1.0, finalBrightness));
+            this.sprite.material.opacity = opacity;
+        }
+        updateSize() {
+            const distance = camera.position.distanceTo(this.currentPos);
+            const scale = Math.max(0.03, Math.min(0.2, 1 / distance)) * this.baseScale * charSizeMultiplier; 
+            this.sprite.scale.set(-scale, scale, 1); 
+        }
+        update(landmark) {
+            if (!landmark || !isFaceMode) return;
+            
+            const textLength = textContent.length;
+            let amplitudeMultiplier = 1.0;
+            if (textLength >= MAX_CHARS) {
+                amplitudeMultiplier = 0;
+            } else {
+                amplitudeMultiplier = 1 - (textLength / MAX_CHARS);
+            }
+
+            this.jumpPhase += this.jumpSpeed;
+            const jumpOffset = Math.sin(this.jumpPhase) * jumpAmplitude * amplitudeMultiplier;
+
+            this.targetPos.set(
+                (landmark.x - 0.5) * 6 + this.offsetX,
+                -(landmark.y - 0.5) * 6 + this.offsetY,
+                -landmark.z * 6 + this.offsetZ + jumpOffset
+            );
+            if (trackingPrecision >= 0.99) {
+                this.currentPos.copy(this.targetPos);
+                this.velocity.set(0, 0, 0); 
+            } else {
+                const diff = new THREE.Vector3().subVectors(this.targetPos, this.currentPos);
+                const lerpSpeed = THREE.MathUtils.lerp(0.04, 0.9, trackingPrecision); 
+                const damping = THREE.MathUtils.lerp(0.85, 0.98, trackingPrecision); 
+                this.velocity.lerp(diff, lerpSpeed);
+                this.velocity.multiplyScalar(damping);
+                this.currentPos.add(this.velocity);
+            }
+            this.sprite.position.copy(this.currentPos);
+            this.updateSize();
+        }
+        destroy() {
+            scene.remove(this.sprite);
+            this.sprite.material.map.dispose();
+            this.sprite.material.dispose();
+        }
+    }
+
+    function calculateActiveLandmarksWithDensity(charCount, landmarks, brightnessData) {
+        if (charCount === 0) return [];
+        const maxUniqueLandmarks = 468;
+        let landmarkDensityMap = [];
+        if (landmarks && brightnessData && landmarks.length >= 468) {
+            const faceLandmarks = Array.from({ length: 468 }, (_, i) => i);
+            let faceBrightnessSum = 0;
+            let faceBrightnessCount = 0;
+            for (let i of faceLandmarks) {
+                if (landmarks[i]) {
+                    faceBrightnessSum += getBrightnessAtLandmark(landmarks[i], brightnessData);
+                    faceBrightnessCount++;
+                }
+            }
+            const averageFaceBrightness = faceBrightnessCount > 0 ? faceBrightnessSum / faceBrightnessCount : 0.5;
+            for (let i = 0; i < 468; i++) {
+                const landmark = landmarks[i];
+                if (!landmark) continue;
+                const brightness = getBrightnessAtLandmark(landmark, brightnessData);
+                const isDarkFeature = isInDarkFeatureZone(i);
+                let densityWeight = 1.0;
+                if (isDarkFeature) {
+                    const darknessFactor = Math.max(0, averageFaceBrightness - brightness);
+                    densityWeight = 1.0 + darknessFactor * 10.0; 
+                } else {
+                    const lightnessFactor = Math.max(0, brightness - averageFaceBrightness);
+                    densityWeight = 1.0 - lightnessFactor * 2.0; 
+                    densityWeight = Math.max(0.2, densityWeight); 
+                }
+                landmarkDensityMap.push({ index: i, weight: densityWeight });
+            }
+        } else {
+            for (let i = 0; i < 468; i++) {
+                landmarkDensityMap.push({ index: i, weight: 1.0 });
+            }
+        }
+        landmarkDensityMap.sort((a, b) => b.weight - a.weight);
+        const topDensityMap = landmarkDensityMap.slice(0, maxUniqueLandmarks); 
+        let totalWeight = topDensityMap.reduce((sum, item) => sum + item.weight, 0); 
+        let activeLandmarks = [];
+        for (let item of topDensityMap) {
+            const proportion = item.weight / totalWeight;
+            const count = Math.ceil(proportion * charCount); 
+            for (let i = 0; i < count && activeLandmarks.length < charCount; i++) {
+                activeLandmarks.push(item.index);
+            }
+        }
+        while (activeLandmarks.length < charCount) {
+             const randomLandmark = topDensityMap[Math.floor(Math.random() * topDensityMap.length)];
+             activeLandmarks.push(randomLandmark.index);
+        }
+        if (beardMustacheData && beardMustacheData.additionalLandmarks.length > 0) {
+            activeLandmarks.push(...beardMustacheData.additionalLandmarks);
+        }
+        return activeLandmarks;
+    }
+
+    function updateCharacterPool(text) {
+        textContent = text;
+        const counterEl = document.getElementById('counter-curr');
+        if(counterEl) counterEl.innerText = textContent.length;
+        
+        const chars = text.split('');
+        availableChars = chars.length > 0 ? chars : [];
+        let targetLandmarks;
+        if (currentLandmarks && brightnessData && currentLandmarks.length >= 468) {
+            targetLandmarks = calculateActiveLandmarksWithDensity(chars.length, currentLandmarks, brightnessData);
+        } else {
+            targetLandmarks = calculateActiveLandmarksWithDensity(chars.length, null, null);
+        }
+        activeLandmarkIndices = targetLandmarks;
+        const targetCount = targetLandmarks.length;
+        while (charParticles.length > targetCount) {
+            const particle = charParticles.pop();
+            particle.destroy();
+        }
+        while (charParticles.length < targetCount) {
+            const charIndex = charParticles.length % Math.max(1, chars.length);
+            const char = chars.length > 0 ? chars[charIndex] : ' ';
+            const particle = new CharacterParticle(char, charParticles.length);
+            charParticles.push(particle);
+        }
+        for (let i = 0; i < Math.min(charParticles.length, chars.length); i++) {
+            const newChar = chars[i] || ' ';
+            charParticles[i].updateCharacter(newChar);
+        }
+        for (let i = chars.length; i < charParticles.length; i++) {
+            const charIndex = i % Math.max(1, chars.length);
+            const char = chars.length > 0 ? chars[charIndex] : ' ';
+            charParticles[i].updateCharacter(char);
+        }
+    }
+
+    function onFaceMeshResults(results) {
+        const wasTracking = isTracking;
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            currentLandmarks = results.multiFaceLandmarks[0];
+            isTracking = true;
+        } else {
+            currentLandmarks = null;
+            isTracking = false;
+        }
+        if (isTracking !== wasTracking) {
+            const text = document.getElementById('textInput').value;
+            updateCharacterPool(text);
+        }
+    }
+
+    async function initFaceMesh() {
+        videoElement = document.getElementById('video');
+        
+        if (!faceMesh) {
+             faceMesh = new FaceMesh({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                }
+            });
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true, 
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            faceMesh.onResults(onFaceMeshResults);
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: 640, 
+                    height: 480,
+                    facingMode: 'user'
+                } 
+            });
+            videoElement.srcObject = stream;
+            await videoElement.play();
+            
+            if (cameraInstance) {
+                cameraInstance.stop();
+            }
+            cameraInstance = new Camera(videoElement, {
+                onFrame: async () => {
+                    await faceMesh.send({ image: videoElement });
+                },
+                width: 640,
+                height: 480
+            });
+            cameraInstance.start();
+        } catch (error) {
+            
+        }
+    }
+    
+    function stopWebcam() {
+        if (cameraInstance) {
+            cameraInstance.stop();
+        }
+        if (videoElement && videoElement.srcObject) {
+            const tracks = videoElement.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            videoElement.srcObject = null;
+        }
+        charParticles.forEach(p => p.destroy());
+        charParticles = [];
+        currentLandmarks = null;
+        isTracking = false;
+        beardMustacheData = null;
+        if (bwCanvas && bwCtx) {
+             bwCtx.clearRect(0, 0, bwCanvas.width, bwCanvas.height);
+        }
+    }
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        if (!isFaceMode) return;
+        brightnessData = analyzeVideoFrameBrightness();
+        if (currentLandmarks && brightnessData) {
+            const newBeardData = detectBeardMustache(currentLandmarks, brightnessData);
+            const beardChanged = !beardMustacheData || 
+                beardMustacheData.hasMustache !== newBeardData.hasMustache ||
+                beardMustacheData.hasBeard !== newBeardData.hasBeard ||
+                beardMustacheData.hasEyebrows !== newBeardData.hasEyebrows;
+            beardMustacheData = newBeardData;
+            if (beardChanged && availableChars.length > 0) {
+                const text = document.getElementById('textInput').value;
+                updateCharacterPool(text);
+            }
+        }
+        drawBwFace(); 
+        renderer.setClearColor(0x000000, 0.25);
+        renderer.clear();
+        renderer.setClearColor(0x000000, 1);
+        if (currentLandmarks) {
+            updateFaceWireframe(currentLandmarks);
+        }
+        if (currentLandmarks && isTracking && charParticles.length > 0) {
+            for (let i = 0; i < charParticles.length; i++) {
+                const landmarkIndex = activeLandmarkIndices[i % activeLandmarkIndices.length];
+                if (landmarkIndex !== undefined && currentLandmarks[landmarkIndex]) {
+                    const landmark = currentLandmarks[landmarkIndex];
+                    charParticles[i].update(landmark);
+                    if (brightnessData) {
+                        const brightness = getBrightnessAtLandmark(landmark, brightnessData);
+                        charParticles[i].updateBrightness(brightness, landmarkIndex);
+                    }
+                }
+            }
+        }
+        renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (bwCanvas) {
+            bwCanvas.width = window.innerWidth;
+            bwCanvas.height = window.innerHeight;
+        }
+    }
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const controls = document.getElementById('controls');
+
+    controls.addEventListener('mousedown', stopProp);
+    controls.addEventListener('touchstart', stopProp);
+    controls.addEventListener('wheel', stopProp);
+    
+    document.getElementById('input-container').addEventListener('mousedown', stopProp);
+    document.getElementById('input-container').addEventListener('touchstart', stopProp);
+    document.getElementById('text-toggle-btn').addEventListener('mousedown', stopProp);
+
+    menuToggle.addEventListener('click', () => {
+        controls.classList.toggle('hidden');
+        menuToggle.classList.toggle('open');
+    });
+
+    document.getElementById('textInput').addEventListener('input', (e) => {
+        updateCharacterPool(e.target.value); 
+        if (!isFaceMode) {
+            const textContent = document.getElementById('textModeContent');
+            textContent.textContent = e.target.value || 'Descriviti qui...';
+        }
+    });
+
+    document.getElementById('textModeContent').addEventListener('input', (e) => {
+        const text = e.target.textContent;
+        document.getElementById('textInput').value = text;
+        updateCharacterPool(text);
+    });
+
+    document.getElementById('sizeSlider').addEventListener('input', (e) => {
+        const sliderValue = parseInt(e.target.value);
+        charSizeMultiplier = 0.5 + (sliderValue - 1) * 1.5 / 9;
+        document.getElementById('sizeValue').textContent = sliderValue;
+        charParticles.forEach(particle => {
+            particle.baseScale = 0.15;
+        });
+    });
+    
+    document.getElementById('precisionSlider').addEventListener('input', (e) => {
+        const percentage = parseInt(e.target.value);
+        trackingPrecision = percentage / 100;
+        document.getElementById('precisionValue').textContent = `${percentage}%`;
+    });
+    
+    document.getElementById('meshOpacitySlider').addEventListener('input', (e) => {
+        const percentage = parseInt(e.target.value);
+        meshOpacity = percentage / 100;
+        document.getElementById('meshOpacityValue').textContent = `${percentage}%`; 
+    });
+
+    document.getElementById('text-toggle-btn').addEventListener('click', (e) => {
+        isFaceMode = !isFaceMode;
+        const button = e.target;
+        const textContainer = document.getElementById('textModeContainer');
+        const canvas3d = document.getElementById('canvas3d');
+        const menuToggle = document.getElementById('menu-toggle');
+        const controls = document.getElementById('controls');
+        const counterEl = document.getElementById('char-counter');
+        const inputContainer = document.getElementById('input-container');
+        
+        if (isFaceMode) {
+            button.classList.remove('active');
+            textContainer.classList.remove('active');
+            canvas3d.style.display = 'block';
+            menuToggle.style.display = 'flex';
+            counterEl.style.display = 'flex';
+            inputContainer.style.display = 'flex';
+            if (showBwFace) {
+                document.getElementById('canvasBw').style.display = 'block';
+            }
+        } else {
+            button.classList.add('active');
+            const text = document.getElementById('textInput').value;
+            document.getElementById('textModeContent').textContent = text || 'Inserisci del testo...';
+            textContainer.classList.add('active');
+            canvas3d.style.display = 'none';
+            menuToggle.style.display = 'none';
+            controls.classList.add('hidden');
+            menuToggle.classList.remove('open');
+            counterEl.style.display = 'none';
+            inputContainer.style.display = 'none';
+            document.getElementById('canvasBw').style.display = 'none';
+        }
+    });
+
+    document.getElementById('toggleBwFace').addEventListener('click', (e) => {
+        if (!isFaceMode) return;
+        showBwFace = !showBwFace;
+        const button = e.target;
+        const bwElement = document.getElementById('canvasBw');
+        if (showBwFace) {
+            button.textContent = 'Nascondi Volto';
+            button.classList.add('active');
+            bwElement.style.display = 'block';
+            drawBwFace(); 
+        } else {
+            button.textContent = 'Mostra Volto'; 
+            button.classList.remove('active');
+            bwElement.style.display = 'none';
+        }
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        const originalWidth = window.innerWidth;
+        const originalHeight = window.innerHeight;
+        const targetWidth = 3840; 
+        const targetHeight = 2160; 
+        renderer.setSize(targetWidth, targetHeight);
+        camera.aspect = targetWidth / targetHeight; 
+        camera.updateProjectionMatrix();
+        renderer.render(scene, camera);
+        let finalDataURL;
+        if (showBwFace && videoElement) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = targetWidth;
+            tempCanvas.height = targetHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            const tempBwCanvas = document.createElement('canvas');
+            tempBwCanvas.width = targetWidth;
+            tempBwCanvas.height = targetHeight;
+            const tempBwCtx = tempBwCanvas.getContext('2d', { willReadFrequently: true });
+            const videoAspect = videoElement.videoWidth / videoElement.videoHeight;
+            const canvasAspect = targetWidth / targetHeight;
+            let drawWidth, drawHeight, offsetX, offsetY;
+            if (videoAspect > canvasAspect) {
+                drawHeight = targetHeight;
+                drawWidth = drawHeight * videoAspect;
+                offsetX = (targetWidth - drawWidth) / 2;
+                offsetY = 0;
+            } else {
+                drawWidth = targetWidth;
+                drawHeight = drawWidth / videoAspect;
+                offsetX = 0;
+                offsetY = (targetHeight - drawHeight) / 2;
+            }
+            tempBwCtx.save();
+            tempBwCtx.translate(targetWidth, 0);
+            tempBwCtx.scale(-1, 1);
+            tempBwCtx.drawImage(videoElement, offsetX, offsetY, drawWidth, drawHeight);
+            tempBwCtx.restore();
+            const imageData = tempBwCtx.getImageData(0, 0, targetWidth, targetHeight);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                data[i] = gray;
+                data[i + 1] = gray;
+                data[i + 2] = gray;
+            }
+            tempBwCtx.putImageData(imageData, 0, 0);
+            tempCtx.drawImage(tempBwCanvas, 0, 0);
+            tempCtx.drawImage(renderer.domElement, 0, 0);
+            finalDataURL = tempCanvas.toDataURL('image/png');
+        } else {
+            finalDataURL = renderer.domElement.toDataURL('image/png');
+        }
+        
+        const timestamp = Date.now();
+        
+        const linkImg = document.createElement('a');
+        linkImg.download = `face-typography-${timestamp}.png`;
+        linkImg.href = finalDataURL;
+        linkImg.click();
+
+        const textContentExport = textContent || "Nessun testo inserito.";
+        const blobTxt = new Blob([textContentExport], { type: "text/plain" });
+        const urlTxt = URL.createObjectURL(blobTxt);
+        const linkTxt = document.createElement('a');
+        linkTxt.download = `face-typography-text-${timestamp}.txt`;
+        linkTxt.href = urlTxt;
+        linkTxt.click();
+
+        renderer.setSize(originalWidth, originalHeight);
+        camera.aspect = originalWidth / originalHeight;
+        camera.updateProjectionMatrix();
+    });
+
+    window.addEventListener('resize', onWindowResize, false);
+    
+    const backButton = document.getElementById('back-button');
+    backButton.addEventListener('click', () => {
+        window.location.href = 'index.html?mode=pratica';
+    });
+    
+    function main() {
+        initThreeJS();
+        initFaceMesh();
+        animate();
+    }
+
+    main();
+</script>
+</body>
+</html>

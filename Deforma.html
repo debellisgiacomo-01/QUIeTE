@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webcam 3D Deforma - QUIeTE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #000000;
+    --glass-bg: rgba(18, 18, 18, 0.75);
+    --glass-bg-hover: rgba(18, 18, 18, 0.85);
+    --glass-blur: blur(24px) saturate(180%) brightness(0.8);
+    --border-glass: rgba(255, 255, 255, 0.18);
+    --border-glass-strong: rgba(255, 255, 255, 0.25);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --shadow-elevation: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --gradient-primary: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --radius-xl: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: var(--bg-primary); 
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+#container {
+    width: 100vw; height: 100vh; position: relative; z-index: 1;
+}
+
+#back-button, #menu-toggle {
+    position: fixed; top: 30px; width: 48px; height: 48px;
+    background: var(--glass-bg); backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass); border-radius: 50%;
+    cursor: pointer; z-index: 3001; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth); box-shadow: var(--shadow-elevation);
+}
+#back-button { left: 30px; } #menu-toggle { right: 30px; }
+#back-button:hover, #menu-toggle:hover { 
+    transform: translateY(-2px) scale(1.05); 
+    background: var(--glass-bg-hover);
+    border-color: var(--text-primary);
+}
+#back-button::before { content: '←'; font-size: 24px; color: var(--text-primary); }
+#menu-toggle::before { content: '☰'; font-size: 22px; color: var(--text-primary); transition: content 0.3s; }
+#menu-toggle.open::before { content: '✕'; }
+
+#floating-buttons {
+    position: fixed; bottom: 30px; left: 30px;
+    display: flex; flex-direction: column; gap: 16px;
+    z-index: 3001;
+}
+
+.btn-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.float-btn {
+    width: 56px; height: 56px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 24px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+    font-weight: 700;
+}
+
+.float-btn:hover {
+    background: var(--glass-bg-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    border-color: var(--text-primary);
+}
+
+#btn-view-reset { font-size: 22px; } 
+
+.tooltip {
+    position: absolute;
+    left: 70px; 
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+}
+
+.tooltip.visible { opacity: 1; }
+
+#controls {
+    position: fixed; top: 90px; right: 30px; 
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 24px; border-radius: var(--radius-xl); z-index: 3000;
+    border: 1px solid var(--border-glass); 
+    box-shadow: var(--shadow-elevation); 
+    transition: transform 0.4s var(--ease-smooth), opacity 0.4s;
+    width: 320px; max-height: calc(100vh - 120px); overflow-y: auto;
+}
+
+#controls.hidden { transform: translateX(120%); opacity: 0; pointer-events: none; }
+
+.control-group { margin-bottom: 24px; }
+
+.slider-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.question-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.question-btn:hover, .question-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.slider-value {
+    font-weight: 700; color: var(--text-primary);
+    font-size: 14px; min-width: 30px; text-align: right;
+    font-feature-settings: "tnum";
+}
+
+input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px;
+    border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    background: var(--text-primary); border-radius: 50%; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+button.std-btn {
+    width: 100%; padding: 14px; margin-top: 16px;
+    background: rgba(255,255,255,0.08); color: var(--text-primary);
+    border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+    font-weight: 600; font-size: 14px; cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+    font-family: 'Inter', sans-serif;
+}
+button.std-btn:hover { 
+    background: rgba(255,255,255,0.15); transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.3);
+}
+
+#save-frame { 
+    background: var(--gradient-primary); border: none; color: #fff;
+    margin-top: 16px;
+    box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
+}
+#save-frame:hover { box-shadow: 0 8px 32px rgba(167, 139, 250, 0.5); transform: translateY(-2px); }
+
+#video { display: none; }
+
+#loading {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 1px; height: 1px; opacity: 0; pointer-events: none;
+}
+
+.popup-container {
+    position: fixed; background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-radius: var(--radius-xl); border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-elevation); z-index: 4000;
+    display: none; animation: fadeIn 0.3s var(--ease-smooth);
+}
+
+#question-popup {
+    padding: 24px; width: 380px; cursor: pointer; 
+}
+#question-popup h3 {
+    margin-bottom: 16px; margin-right: 24px; color: var(--text-primary);
+    font-size: 16px; line-height: 1.5; font-weight: 500;
+}
+#question-popup .scale-info {
+    font-size: 12px; color: var(--text-secondary); margin-top: 16px;
+    font-weight: 400; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;
+}
+
+.close-btn {
+    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
+    background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-glass);
+    border-radius: 50%; color: var(--text-primary); font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+}
+.close-btn:hover { background: rgba(255, 255, 255, 0.25); border-color: #fff; transform: rotate(90deg); }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.controls-disabled {
+    pointer-events: none; opacity: 0.2; filter: blur(4px); transition: all 0.3s;
+}
+
+#rotation-hint {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+    border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
+    padding: 6px 10px; color: var(--text-primary); font-size: 12px;
+    font-weight: 500; z-index: 3001;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s var(--ease-smooth);
+}
+#rotation-hint.visible { opacity: 1; }
+
+@media (max-width: 640px) {
+    #controls { width: 100%; height: 50vh; bottom: 0; top: auto; transform: translateY(110%); border-radius: 24px 24px 0 0; }
+    #controls.open { transform: translateY(0); }
+    #question-popup { width: 90%; left: 5% !important; top: 20% !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="back-button"></div>
+<div id="menu-toggle" title="Apri/Chiudi Controlli"></div>
+
+<div id="floating-buttons">
+    <div class="btn-wrapper">
+        <button id="btn-view-reset" class="float-btn">👁️</button>
+        <div id="tooltip-reset" class="tooltip">Ripristina vista</div>
+    </div>
+    <div class="btn-wrapper">
+        <button id="upload-image" class="float-btn">🖼️</button>
+        <div id="tooltip-upload" class="tooltip">Carica Immagine</div>
+    </div>
+    <div class="btn-wrapper" id="webcam-btn-wrapper" style="display: none;">
+        <button id="switch-webcam" class="float-btn">📹</button>
+        <div id="tooltip-webcam" class="tooltip">Torna a Webcam</div>
+    </div>
+</div>
+
+<input type="file" id="image-input" accept="image/*" style="display: none;">
+
+<div id="question-popup" class="popup-container">
+    <button class="close-btn" id="close-popup">×</button>
+    <h3 id="question-text"></h3>
+    <div class="scale-info">(0 = mai, 100 = sempre)</div>
+</div>
+
+<div id="rotation-hint">Ruota l'immagine con il mouse</div>
+
+<div id="container"></div>
+
+<div id="controls">
+    
+    <div class="control-group" id="scroll-group">
+        <div class="slider-header">
+            <button class="question-btn" data-question="0" data-type="scroll">&lt; SCROLL</button>
+            <span class="slider-value" id="scroll-value">0</span>
+        </div>
+        <input type="range" id="scroll" min="0" max="100" value="0" step="1">
+    </div>
+
+    <div class="control-group" id="jump-group">
+        <div class="slider-header">
+            <button class="question-btn" data-question="1" data-type="jump">&lt; JUMP</button>
+            <span class="slider-value" id="jump-value">0</span>
+        </div>
+        <input type="range" id="jump" min="0" max="100" value="0" step="1">
+    </div>
+
+    <div class="control-group" id="skip-group">
+        <div class="slider-header">
+            <button class="question-btn" data-question="2" data-type="skip">&lt; SKIP</button>
+            <span class="slider-value" id="skip-value">0</span>
+        </div>
+        <input type="range" id="skip" min="0" max="100" value="0" step="1">
+    </div>
+
+    <div class="control-group" id="live-group">
+        <div class="slider-header">
+            <button class="question-btn" data-question="3" data-type="live">&lt; LIVE</button>
+            <span class="slider-value" id="live-value">0</span>
+        </div>
+        <input type="range" id="live" min="0" max="100" value="0" step="1">
+    </div>
+    
+    <button id="save-frame" class="std-btn">Esporta</button>
+</div>
+
+<div id="loading"></div>
+<video id="video" autoplay playsinline></video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+let scene, camera, renderer, controls;
+let videoElement; 
+let mesh;
+let tempCanvas, tempCtx;
+let isReady = false;
+let inputMode = 'webcam';
+let staticImage = null;
+let webcamStream = null;
+let scroll = 0;
+let jump = 0;
+let skip = 0;
+let live = 0;
+let allSlidersUsed = false;
+let hasRotated = false;
+
+const questions = [
+    "Quando scorri i social, quanto spesso ti accorgi di farlo solo per riempire un vuoto, e non per un reale interesse?",
+    "Quanto frequentemente passi da un contenuto all'altro senza davvero soffermarti a capire o ricordare ciò che hai visto?",
+    "Quando leggi o guardi qualcosa online, quanto senti il bisogno di passare subito al contenuto successivo, anche se non hai finito il precedente?",
+    "Dopo aver trascorso del tempo sui social, quanto spesso ti resta la sensazione di non aver davvero 'vissuto' o imparato nulla di significativo?"
+];
+
+let activeSliderId = null;
+let activeArrowBtn = null;
+let currentWidth = 0;
+let currentHeight = 0;
+let maxVertices = 50000;
+
+const menuToggle = document.getElementById('menu-toggle');
+const controlsPanel = document.getElementById('controls');
+const questionPopup = document.getElementById('question-popup');
+const questionText = document.getElementById('question-text');
+const closePopup = document.getElementById('close-popup');
+const btnViewReset = document.getElementById('btn-view-reset');
+const tooltipReset = document.getElementById('tooltip-reset');
+const webcamBtnWrapper = document.getElementById('webcam-btn-wrapper');
+const rotationHint = document.getElementById('rotation-hint');
+
+const uiElements = [controlsPanel, questionPopup, menuToggle, document.getElementById('back-button'), document.getElementById('floating-buttons'), rotationHint];
+uiElements.forEach(el => {
+    el.addEventListener('mousedown', (e) => e.stopPropagation());
+    el.addEventListener('touchstart', (e) => e.stopPropagation());
+    el.addEventListener('wheel', (e) => e.stopPropagation());
+});
+
+menuToggle.addEventListener('click', () => {
+    if (controlsPanel.classList.contains('hidden')) {
+        controlsPanel.classList.remove('hidden');
+        menuToggle.classList.add('open');
+    } else {
+        controlsPanel.classList.add('hidden');
+        menuToggle.classList.remove('open');
+        if (activeSliderId) {
+            hideQuestionPopup();
+        }
+    }
+});
+
+document.querySelectorAll('.question-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const target = e.currentTarget;
+        const questionIndex = parseInt(target.getAttribute('data-question'));
+        const type = target.getAttribute('data-type');
+        
+        if (activeSliderId === type) {
+            hideQuestionPopup();
+        } else {
+            showQuestionPopup(type, questionIndex, target);
+        }
+    });
+});
+
+closePopup.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hideQuestionPopup();
+});
+
+questionPopup.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hideQuestionPopup();
+});
+
+function showQuestionPopup(sliderType, questionIndex, buttonElement) {
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const menuRect = controlsPanel.getBoundingClientRect();
+    
+    questionPopup.style.left = (menuRect.left - 420) + 'px';
+    questionPopup.style.top = (buttonRect.top - 20) + 'px';
+    questionText.textContent = questions[questionIndex];
+    questionPopup.style.display = 'block';
+    
+    if (activeArrowBtn) activeArrowBtn.classList.remove('active');
+    
+    activeSliderId = sliderType;
+    activeArrowBtn = buttonElement;
+    activeArrowBtn.classList.add('active');
+    
+    document.querySelectorAll('.control-group').forEach(group => {
+        if (group.id !== `${sliderType}-group`) {
+            group.classList.add('controls-disabled');
+        }
+    });
+    
+    document.getElementById('save-frame').classList.add('controls-disabled');
+}
+
+function hideQuestionPopup() {
+    questionPopup.style.display = 'none';
+    activeSliderId = null;
+    
+    if (activeArrowBtn) {
+        activeArrowBtn.classList.remove('active');
+        activeArrowBtn = null;
+    }
+    
+    document.querySelectorAll('.control-group').forEach(group => {
+        group.classList.remove('controls-disabled');
+    });
+    document.getElementById('save-frame').classList.remove('controls-disabled');
+}
+
+let hoverTimeout;
+
+btnViewReset.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+        tooltipReset.classList.add('visible');
+    }, 1000);
+});
+
+btnViewReset.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    tooltipReset.classList.remove('visible');
+});
+
+btnViewReset.addEventListener('click', () => {
+    if(controls) {
+        controls.reset();
+    }
+    tooltipReset.classList.remove('visible');
+    clearTimeout(hoverTimeout);
+});
+
+function initScene() {
+    const container = document.getElementById('container');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    const aspect = window.innerWidth / window.innerHeight;
+    const frustumSize = 5;
+    camera = new THREE.OrthographicCamera(
+        frustumSize * aspect / -2,
+        frustumSize * aspect / 2,
+        frustumSize / 2,
+        frustumSize / -2,
+        0.1,
+        1000
+    );
+    camera.position.z = 5;
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: false,
+        preserveDrawingBuffer: true,
+        powerPreference: "high-performance"
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+    container.appendChild(renderer.domElement);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambientLight);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.enablePan = false;
+
+    controls.addEventListener('change', () => {
+        if (allSlidersUsed && !hasRotated) {
+            hasRotated = true;
+            rotationHint.classList.remove('visible');
+        }
+    });
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+async function initWebcam() {
+    videoElement = document.getElementById('video');
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            }
+        });
+        webcamStream = stream;
+        videoElement.srcObject = stream;
+        inputMode = 'webcam';
+        videoElement.setAttribute('autoplay', '');
+        videoElement.setAttribute('muted', '');
+        videoElement.setAttribute('playsinline', '');
+        await videoElement.play();
+
+        document.getElementById('loading').style.display = 'none';
+        webcamBtnWrapper.style.display = 'none';
+        initMesh();
+        isReady = true;
+        animate();
+
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+function stopWebcam() {
+    if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        videoElement.srcObject = null;
+        webcamStream = null;
+    }
+}
+
+function loadStaticImage(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            stopWebcam();
+            staticImage = img;
+            inputMode = 'image';
+            webcamBtnWrapper.style.display = 'flex';
+            initMesh();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function switchToWebcam() {
+    staticImage = null;
+    webcamBtnWrapper.style.display = 'none';
+    await initWebcam();
+}
+
+function calculateOptimalSegments(width, height) {
+    const aspectRatio = width / height;
+    let segmentsX, segmentsY;
+    const totalPixels = width * height;
+    if (totalPixels > maxVertices) {
+        const scaleFactor = Math.sqrt(maxVertices / totalPixels);
+        segmentsX = Math.max(2, Math.floor(width * scaleFactor));
+        segmentsY = Math.max(2, Math.floor(height * scaleFactor));
+    } else {
+        segmentsX = width;
+        segmentsY = height;
+    }
+    return { segmentsX, segmentsY };
+}
+
+function initMesh() {
+    let videoWidth, videoHeight;
+    if (inputMode === 'webcam') {
+        videoWidth = videoElement.videoWidth || 1920;
+        videoHeight = videoElement.videoHeight || 1080;
+    } else if (inputMode === 'image') {
+        videoWidth = staticImage.naturalWidth || staticImage.width;
+        videoHeight = staticImage.naturalHeight || staticImage.height;
+    } else {
+        videoWidth = 1920;
+        videoHeight = 1080;
+    }
+    currentWidth = videoWidth;
+    currentHeight = videoHeight;
+    const aspectRatio = videoWidth / videoHeight;
+    const { segmentsX, segmentsY } = calculateOptimalSegments(videoWidth, videoHeight);
+    tempCanvas = document.createElement('canvas');
+    tempCanvas.width = videoWidth;
+    tempCanvas.height = videoHeight;
+    tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+    tempCtx.imageSmoothingEnabled = false;
+    if (mesh) {
+        scene.remove(mesh);
+        if (mesh.geometry) mesh.geometry.dispose();
+        if (mesh.material) mesh.material.dispose();
+    }
+    const geometry = new THREE.PlaneGeometry(4, 4 / aspectRatio, segmentsX - 1, segmentsY - 1);
+    const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    if (inputMode === 'webcam') {
+        mesh.scale.x = -1; 
+    } else {
+        mesh.scale.x = 1;
+    }
+    mesh.userData.originalVertices = geometry.attributes.position.array.slice();
+    mesh.userData.segmentsX = segmentsX;
+    mesh.userData.segmentsY = segmentsY;
+    applyDeformations();
+    updateMeshTexture();
+}
+
+function updateMeshTexture() {
+    if (!isReady) return;
+    if (inputMode === 'webcam' && videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) return;
+    if (inputMode === 'image' && !staticImage) return;
+    if (!mesh) return;
+    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    if (inputMode === 'webcam') {
+        tempCtx.drawImage(videoElement, 0, 0, tempCanvas.width, tempCanvas.height);
+    } else if (inputMode === 'image') {
+        tempCtx.drawImage(staticImage, 0, 0, tempCanvas.width, tempCanvas.height);
+    }
+    const texture = new THREE.CanvasTexture(tempCanvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+    mesh.material.map = texture;
+    mesh.material.needsUpdate = true;
+}
+
+function applyDeformations() {
+    if (!mesh) return;
+    const geometry = mesh.geometry;
+    const positions = geometry.attributes.position;
+    const originalVertices = mesh.userData.originalVertices;
+    for (let i = 0; i < positions.count; i++) {
+        const idx = i * 3;
+        positions.array[idx] = originalVertices[idx];
+        positions.array[idx + 1] = originalVertices[idx + 1];
+        positions.array[idx + 2] = originalVertices[idx + 2];
+        const x = positions.array[idx];
+        const y = positions.array[idx + 1];
+        let deformation = 0;
+        if (scroll > 0) {
+            const frequency = scroll / 100 * 15;
+            const amp = (scroll / 100) * 1.5;
+            deformation += Math.sin(x * frequency) * amp;
+        }
+        if (jump > 0) {
+            const frequency = jump / 100 * 15;
+            const amp = (jump / 100) * 1.5;
+            deformation += Math.sin(y * frequency) * amp;
+        }
+        if (skip > 0) {
+            const amp = (skip / 100) * 2;
+            deformation += (Math.sin(x * 8) + Math.sin(y * 8)) * amp * 0.5;
+        }
+        if (live > 0) {
+            const noiseIntensity = live / 100;
+            const noiseValue = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+            deformation += (noiseValue - Math.floor(noiseValue)) * noiseIntensity * 1.2;
+        }
+        deformation = Math.max(-2, Math.min(2, deformation));
+        positions.array[idx + 2] = deformation;
+    }
+    positions.needsUpdate = true;
+    geometry.computeVertexNormals();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    updateMeshTexture();
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+    const aspect = window.innerWidth / window.innerHeight;
+    const frustumSize = 5;
+    camera.left = -frustumSize * aspect / 2;
+    camera.right = frustumSize * aspect / 2;
+    camera.top = frustumSize / 2;
+    camera.bottom = -frustumSize / 2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function checkSlidersAndShowHint() {
+    const s = parseInt(document.getElementById('scroll').value);
+    const j = parseInt(document.getElementById('jump').value);
+    const sk = parseInt(document.getElementById('skip').value);
+    const l = parseInt(document.getElementById('live').value);
+
+    if (s > 0 && j > 0 && sk > 0 && l > 0) {
+        allSlidersUsed = true;
+        if (!hasRotated) {
+            rotationHint.classList.add('visible');
+        }
+    } else {
+        allSlidersUsed = false;
+        rotationHint.classList.remove('visible');
+    }
+}
+
+document.getElementById('scroll').addEventListener('input', (e) => {
+    scroll = parseInt(e.target.value);
+    document.getElementById('scroll-value').textContent = scroll;
+    applyDeformations();
+    checkSlidersAndShowHint();
+});
+document.getElementById('jump').addEventListener('input', (e) => {
+    jump = parseInt(e.target.value);
+    document.getElementById('jump-value').textContent = jump;
+    applyDeformations();
+    checkSlidersAndShowHint();
+});
+document.getElementById('skip').addEventListener('input', (e) => {
+    skip = parseInt(e.target.value);
+    document.getElementById('skip-value').textContent = skip;
+    applyDeformations();
+    checkSlidersAndShowHint();
+});
+document.getElementById('live').addEventListener('input', (e) => {
+    live = parseInt(e.target.value);
+    document.getElementById('live-value').textContent = live;
+    applyDeformations();
+    checkSlidersAndShowHint();
+});
+
+document.getElementById('save-frame').addEventListener('click', () => {
+    renderer.render(scene, camera);
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = renderer.domElement.width;
+    exportCanvas.height = renderer.domElement.height;
+    const ctx = exportCanvas.getContext('2d');
+
+    ctx.drawImage(renderer.domElement, 0, 0);
+
+    ctx.font = 'bold 24px "Inter", sans-serif'; 
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+
+    const margin = 40; 
+    const w = exportCanvas.width;
+    const h = exportCanvas.height;
+
+    const p1 = w * 0.125;
+    const p2 = w * 0.375;
+    const p3 = w * 0.625;
+    const p4 = w * 0.875;
+
+    ctx.fillText(`SCROLL _ ${scroll}`, p1, h - margin);
+    ctx.fillText(`JUMP _ ${jump}`, p2, h - margin);
+    ctx.fillText(`SKIP _ ${skip}`, p3, h - margin);
+    ctx.fillText(`LIVE _ ${live}`, p4, h - margin);
+
+    exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `anamorfosi_${Date.now()}.png`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }, 'image/png');
+});
+
+document.getElementById('upload-image').addEventListener('click', () => {
+    document.getElementById('image-input').click();
+});
+document.getElementById('image-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        loadStaticImage(file);
+    }
+});
+document.getElementById('switch-webcam').addEventListener('click', () => {
+    switchToWebcam();
+});
+document.getElementById('back-button').addEventListener('click', () => {
+    window.location.href = 'index.html?mode=pratica';
+});
+
+document.getElementById('upload-image').addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+        document.getElementById('tooltip-upload').classList.add('visible');
+    }, 1000);
+});
+
+document.getElementById('upload-image').addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    document.getElementById('tooltip-upload').classList.remove('visible');
+});
+
+document.getElementById('switch-webcam').addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+        document.getElementById('tooltip-webcam').classList.add('visible');
+    }, 1000);
+});
+
+document.getElementById('switch-webcam').addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    document.getElementById('tooltip-webcam').classList.remove('visible');
+});
+
+
+initScene();
+initWebcam();
+</script>
+</body>
+</html>

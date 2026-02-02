@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Webcam 3D Rilievo - Ultimate Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<style>
+/* --- GLASSMORPHISM DESIGN SYSTEM --- */
+:root {
+    --bg-primary: #000000;
+    --glass-bg: rgba(18, 18, 18, 0.75);
+    --glass-bg-hover: rgba(18, 18, 18, 0.85);
+    --glass-blur: blur(24px) saturate(180%) brightness(0.8);
+    --border-glass: rgba(255, 255, 255, 0.18);
+    --border-glass-strong: rgba(255, 255, 255, 0.25);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --shadow-elevation: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --gradient-primary: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --radius-xl: 24px;
+    --radius-md: 16px;
+    
+    /* Colors for Timer */
+    --color-red: #FF5252;
+    --color-green: #69F0AE;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: var(--bg-primary); 
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+#container {
+    width: 100%; height: 100%; position: relative; z-index: 1;
+}
+
+/* --- NAVIGATION BUTTONS --- */
+#back-button, #menu-toggle {
+    position: fixed; top: 30px; width: 48px; height: 48px;
+    background: var(--glass-bg); backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass); border-radius: 50%;
+    cursor: pointer; z-index: 3001; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth); box-shadow: var(--shadow-elevation);
+}
+#back-button { left: 30px; } #menu-toggle { right: 30px; }
+
+#back-button:hover, #menu-toggle:hover { 
+    transform: translateY(-2px) scale(1.05); 
+    background: var(--glass-bg-hover);
+    border-color: var(--text-primary);
+}
+
+#back-button::before { content: '←'; font-size: 24px; color: var(--text-primary); }
+#menu-toggle::before { content: '☰'; font-size: 22px; color: var(--text-primary); transition: content 0.3s; }
+#menu-toggle.open::before { content: '✕'; }
+
+/* --- FLOATING ACTION BUTTONS (Bottom Left) --- */
+#floating-container {
+    position: fixed; bottom: 30px; left: 30px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    z-index: 3001;
+}
+
+/* BARRA DEL TEMPO */
+#loading-bar-container {
+    width: 12px;           /* Più larga come richiesto */
+    height: 140px;        /* Abbastanza alta */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-glass);
+    display: flex;
+    flex-direction: column; /* Default: riempie dall'alto (per countdown rosso) */
+    justify-content: flex-end; /* Allinea la barra in basso */
+}
+
+#loading-bar {
+    width: 100%;
+    height: 100%; /* Parte piena */
+    transition: height 0.1s linear, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Stili dinamici per la barra */
+.bar-red {
+    background-color: var(--color-red);
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.6);
+}
+
+.bar-green {
+    background-color: var(--color-green);
+    box-shadow: 0 0 15px rgba(105, 240, 174, 0.6);
+}
+
+/* CONTATORE NUMERICO */
+#timer-text {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 6px 10px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid var(--border-glass);
+    transition: color 0.3s, text-shadow 0.3s, border-color 0.3s;
+    min-width: 60px;
+    text-align: center;
+}
+
+.text-red {
+    color: var(--color-red);
+    text-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
+    border-color: rgba(255, 82, 82, 0.3) !important;
+}
+
+.text-green {
+    color: var(--color-green);
+    text-shadow: 0 0 10px rgba(105, 240, 174, 0.5);
+    border-color: rgba(105, 240, 174, 0.3) !important;
+}
+
+/* PULSANTE OCCHIO */
+.btn-wrapper { position: relative; display: flex; align-items: center; }
+
+.float-btn {
+    width: 56px; height: 56px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 24px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+}
+
+.float-btn:hover {
+    background: var(--glass-bg-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    border-color: var(--text-primary);
+}
+
+/* TOOLTIP STYLE */
+.tooltip {
+    position: absolute; left: 70px; top: 50%; transform: translateY(-50%);
+    background: var(--glass-bg); backdrop-filter: blur(20px);
+    padding: 8px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary); font-size: 12px; font-weight: 500;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s var(--ease-smooth);
+    box-shadow: var(--shadow-elevation);
+}
+.tooltip.visible { opacity: 1; }
+
+/* --- CONTROLS PANEL --- */
+#controls {
+    position: fixed; top: 90px; right: 30px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 24px; border-radius: var(--radius-xl); z-index: 3000;
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-elevation);
+    transition: transform 0.4s var(--ease-smooth), opacity 0.4s;
+    width: 320px; max-height: calc(100vh - 120px); overflow-y: auto;
+}
+
+#controls.hidden { transform: translateX(120%); opacity: 0; pointer-events: none; }
+
+/* DYNAMIC MODE (Disabilita input durante countdown) */
+#controls.dynamic-mode input,
+#controls.dynamic-mode button {
+    pointer-events: none; opacity: 0.5; filter: grayscale(1);
+}
+
+.control-group { margin-bottom: 24px; }
+
+label { 
+    display: block; font-size: 12px; font-weight: 600; margin-bottom: 12px; 
+    color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
+}
+
+.slider-value { float: right; font-weight: 700; color: var(--text-primary); }
+
+input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px;
+    border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    background: var(--text-primary); border-radius: 50%; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* BUTTONS */
+button.std-btn {
+    width: 100%; padding: 14px; margin-top: 16px;
+    background: rgba(255,255,255,0.08); color: var(--text-primary);
+    border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+    font-weight: 600; font-size: 14px; cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+    font-family: 'Inter', sans-serif;
+}
+button.std-btn:hover { 
+    background: rgba(255,255,255,0.15); transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.3);
+}
+
+#apply-resolution {
+    background: rgba(121, 85, 72, 0.3); border-color: rgba(121, 85, 72, 0.5);
+    margin-bottom: 8px;
+}
+#apply-resolution:hover:not(:disabled) { background: rgba(121, 85, 72, 0.5); }
+
+#save-frame { 
+    background: var(--gradient-primary); border: none; color: #fff;
+    box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
+}
+#save-frame:hover:not(:disabled) { box-shadow: 0 8px 32px rgba(167, 139, 250, 0.5); transform: translateY(-2px); }
+
+
+#video { display: none; }
+
+
+@media (max-width: 640px) {
+    #controls { width: 100%; height: 50vh; bottom: 0; top: auto; transform: translateY(110%); border-radius: 24px 24px 0 0; }
+    #controls.open { transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div id="back-button"></div>
+<div id="menu-toggle" title="Apri/Chiudi Controlli"></div>
+
+<div id="floating-container">
+    <div id="loading-bar-container">
+        <div id="loading-bar" class="bar-red"></div>
+    </div>
+    
+    <div id="timer-text" class="text-red">00:00</div>
+    
+    <div class="btn-wrapper">
+        <button id="btn-view-reset" class="float-btn">👁️</button>
+        <div id="tooltip-reset" class="tooltip">Ripristina vista</div>
+    </div>
+
+    <div class="btn-wrapper">
+        <button id="upload-image" class="float-btn" disabled>🖼️</button>
+        <div id="tooltip-upload" class="tooltip">Carica Immagine</div>
+    </div>
+
+    <div class="btn-wrapper" id="webcam-btn-wrapper" style="display: none;">
+        <button id="switch-webcam" class="float-btn">📹</button>
+        <div id="tooltip-webcam" class="tooltip">Torna a Webcam</div>
+    </div>
+</div>
+
+<input type="file" id="image-input" accept="image/*" style="display: none;">
+
+<div id="container"></div>
+
+<div id="controls" class="dynamic-mode">
+    <div class="control-group">
+        <label>
+            Profondità
+            <span class="slider-value" id="depth-value">100</span>
+        </label>
+        <input type="range" id="depth" min="0" max="100" value="100" step="1" disabled>
+    </div>
+    
+    <div class="control-group">
+        <label>
+            Risoluzione
+            <span class="slider-value" id="resolution-value">10</span>
+        </label>
+        <input type="range" id="resolution" min="0" max="100" value="0" step="1" disabled>
+        <button id="apply-resolution" class="std-btn" disabled>Applica Risoluzione</button>
+    </div>
+
+    <div class="control-group">
+        <label>
+            Luminosità
+            <span class="slider-value" id="brightness-value">100</span>
+        </label>
+        <input type="range" id="brightness" min="0" max="200" value="100" step="1" disabled>
+    </div>
+    
+    <div class="control-group">
+        <label>
+            Contrasto
+            <span class="slider-value" id="contrast-value">100</span>
+        </label>
+        <input type="range" id="contrast" min="0" max="200" value="100" step="1" disabled>
+    </div>
+    
+    <button id="save-frame" class="std-btn" disabled>Esporta</button>
+</div>
+    
+    <button id="upload-image" class="std-btn" disabled>Carica Immagine</button>
+    <input type="file" id="image-input" accept="image/*" style="display: none;">
+    <button id="switch-webcam" class="std-btn" style="display: none; margin-top: 10px;" disabled>Torna a Webcam</button>
+    <button id="save-frame" class="std-btn" disabled>Esporta</button>
+</div>
+
+<video id="video" autoplay playsinline></video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// CONFIGURAZIONE TIMER
+const COUNTDOWN_TIME = 20000; // 20 secondi fase rossa
+const COUNTUP_LIMIT = 150000; // 150 secondi fase verde (barra piena)
+const RESOLUTION_MIN_VALUE = 10;
+const RESOLUTION_MAX_VALUE = 500;
+const RESOLUTION_TARGET_VALUE = 250; 
+const DEPTH_START_VALUE = 100; 
+const DEPTH_END_VALUE = 0;
+const RESOLUTION_SLIDER_MAX = 100;
+ 
+
+let scene, camera, renderer, controls;
+let videoElement; 
+let asciiPlane; 
+let tempCanvas, tempCtx;
+let resolution = RESOLUTION_MIN_VALUE; 
+let depthFactor = DEPTH_START_VALUE; 
+let brightness = 100;
+let contrast = 100;
+let isReady = false;
+let inputMode = 'webcam';
+let staticImage = null;
+let webcamStream = null;
+
+// Gestione Tempo
+let startTime = 0;
+let phase2StartTime = 0;
+let isCountingDown = true; 
+let totalGreenTimeSeconds = 0; // Per export
+
+const menuToggle = document.getElementById('menu-toggle');
+const controlsPanel = document.getElementById('controls');
+const loadingBar = document.getElementById('loading-bar');
+const timerText = document.getElementById('timer-text');
+const depthInput = document.getElementById('depth');
+const resolutionInput = document.getElementById('resolution');
+const applyResolutionButton = document.getElementById('apply-resolution');
+const depthValueDisplay = document.getElementById('depth-value');
+const resolutionValueDisplay = document.getElementById('resolution-value');
+const btnViewReset = document.getElementById('btn-view-reset');
+const tooltipReset = document.getElementById('tooltip-reset');
+const webcamBtnWrapper = document.getElementById('webcam-btn-wrapper');
+
+// Blocca rotazione su UI
+const uiElements = [controlsPanel, document.getElementById('floating-container'), menuToggle, document.getElementById('back-button')];
+uiElements.forEach(el => {
+    el.addEventListener('mousedown', (e) => e.stopPropagation());
+    el.addEventListener('touchstart', (e) => e.stopPropagation());
+    el.addEventListener('wheel', (e) => e.stopPropagation());
+});
+
+menuToggle.addEventListener('click', () => {
+    if (controlsPanel.classList.contains('hidden')) {
+        controlsPanel.classList.remove('hidden');
+        menuToggle.classList.add('open');
+    } else {
+        controlsPanel.classList.add('hidden');
+        menuToggle.classList.remove('open');
+    }
+});
+controlsPanel.classList.add('hidden'); // Default chiuso
+
+document.getElementById('back-button').addEventListener('click', () => {
+    window.location.href = 'index.html?mode=pratica';
+});
+
+// VIEW RESET
+let hoverTimeout;
+btnViewReset.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => { tooltipReset.classList.add('visible'); }, 1000);
+});
+btnViewReset.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    tooltipReset.classList.remove('visible');
+});
+btnViewReset.addEventListener('click', () => {
+    if(controls) {
+        controls.reset();
+        camera.position.z = 3; 
+    }
+    tooltipReset.classList.remove('visible');
+    clearTimeout(hoverTimeout);
+});
+
+function startTimers() {
+    startTime = Date.now();
+    isCountingDown = true;
+    
+    // Blocca controlli
+    controlsPanel.classList.add('dynamic-mode'); 
+    document.querySelectorAll('#controls button, #controls input[type="range"]').forEach(el => {
+        el.disabled = true;
+    });
+    document.getElementById('upload-image').disabled = true;
+    document.getElementById('save-frame').disabled = true;
+}
+
+function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let m = Math.floor(totalSeconds / 60);
+    let s = totalSeconds % 60;
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function updateLogic() {
+    const now = Date.now();
+    
+    if (isCountingDown) {
+        // FASE 1: COUNTDOWN (ROSSO)
+        let elapsed = now - startTime;
+        let remaining = Math.max(0, COUNTDOWN_TIME - elapsed);
+        let progress = 1 - (remaining / COUNTDOWN_TIME); // 0 -> 1
+        
+        // Barra scende: Height da 100% a 0%
+        let barHeight = 100 - (progress * 100);
+        loadingBar.style.height = `${barHeight}%`;
+        
+        // Visuals Rosso
+        loadingBar.className = 'bar-red';
+        timerText.className = 'text-red';
+        timerText.textContent = formatTime(remaining);
+        
+        // Aggiorna valori immagine (profondità scende, risoluzione sale)
+        const depthRange = DEPTH_START_VALUE - DEPTH_END_VALUE; 
+        const resolutionRange = RESOLUTION_TARGET_VALUE - RESOLUTION_MIN_VALUE; 
+        const totalResolutionVarRange = RESOLUTION_MAX_VALUE - RESOLUTION_MIN_VALUE; 
+        
+        depthFactor = Math.round(DEPTH_START_VALUE - (depthRange * progress));
+        resolution = Math.round(RESOLUTION_MIN_VALUE + (resolutionRange * progress));
+        
+        // Update UI Sync
+        depthValueDisplay.textContent = depthFactor;
+        depthInput.value = depthFactor; 
+        resolutionValueDisplay.textContent = resolution;
+        const sliderValue = Math.round(((resolution - RESOLUTION_MIN_VALUE) / totalResolutionVarRange) * RESOLUTION_SLIDER_MAX);
+        resolutionInput.value = sliderValue; 
+        
+        initASCIIPlane(false); // Update geometry if resolution changes
+        
+        if (remaining <= 0) {
+            // FINE COUNTDOWN -> PASSA A FASE 2
+            isCountingDown = false;
+            phase2StartTime = now;
+            
+            // Set Final Values
+            depthFactor = DEPTH_END_VALUE;
+            resolution = RESOLUTION_TARGET_VALUE;
+            depthInput.value = depthFactor; 
+            depthValueDisplay.textContent = depthFactor;
+            resolutionValueDisplay.textContent = resolution;
+            
+            unlockControls();
+        }
+        
+    } else {
+        // FASE 2: COUNT UP (VERDE)
+        let elapsedGreen = now - phase2StartTime;
+        totalGreenTimeSeconds = Math.floor(elapsedGreen / 1000);
+        
+        // Barra sale: Height da 0% a 100% in 150 secondi
+        let fillProgress = Math.min(1, elapsedGreen / COUNTUP_LIMIT);
+        loadingBar.style.height = `${fillProgress * 100}%`;
+        
+        // Visuals Verde
+        loadingBar.className = 'bar-green';
+        timerText.className = 'text-green';
+        timerText.textContent = formatTime(elapsedGreen);
+    }
+}
+
+function unlockControls() {
+    controlsPanel.classList.remove('dynamic-mode');
+    document.querySelectorAll('#controls button, #controls input[type="range"]').forEach(el => {
+        el.disabled = false;
+    });
+    
+    // Riabilita pulsanti flottanti (NUOVO)
+    document.getElementById('upload-image').disabled = false;
+    document.getElementById('save-frame').disabled = false;
+
+    resolutionInput.addEventListener('input', updateResolutionDisplay);
+    applyResolutionButton.addEventListener('click', applyResolution);
+    depthInput.addEventListener('input', updateDepthDisplay);
+}
+
+function initScene() {
+    const container = document.getElementById('container');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 3;
+    renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.enablePan = false;
+    window.addEventListener('resize', onWindowResize);
+}
+
+async function initWebcam() {
+    videoElement = document.getElementById('video');
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        webcamStream = stream;
+        videoElement.srcObject = stream;
+        inputMode = 'webcam';
+        videoElement.setAttribute('autoplay', '');
+        videoElement.setAttribute('muted', '');
+        videoElement.setAttribute('playsinline', '');
+        await videoElement.play();
+
+        initASCIIPlane(true);
+        isReady = true;
+        startTimers(); 
+        animate(); 
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function calculateResolutionValue(sliderValue) {
+    const range = RESOLUTION_MAX_VALUE - RESOLUTION_MIN_VALUE; 
+    const scaledValue = RESOLUTION_MIN_VALUE + (range * (sliderValue / RESOLUTION_SLIDER_MAX));
+    return Math.round(scaledValue);
+}
+
+function updateResolutionDisplay(e) {
+    resolutionValueDisplay.textContent = calculateResolutionValue(parseInt(e.target.value));
+}
+
+function applyResolution() {
+    const sliderValue = parseInt(resolutionInput.value);
+    resolution = calculateResolutionValue(sliderValue); 
+    if (isReady) {
+        initASCIIPlane(true);
+    }
+}
+
+function updateDepthDisplay(e) {
+    depthFactor = parseInt(e.target.value);
+    depthValueDisplay.textContent = depthFactor;
+}
+
+function initASCIIPlane(forceRegenerate = true) {
+    if (asciiPlane && asciiPlane.userData.cols === resolution && !forceRegenerate) return;
+    let videoWidth, videoHeight, aspectRatio;
+    if (inputMode === 'webcam') {
+        videoWidth = videoElement.videoWidth || 1280;
+        videoHeight = videoElement.videoHeight || 720;
+    } else if (inputMode === 'image') {
+        videoWidth = staticImage.width;
+        videoHeight = staticImage.height;
+    } else {
+        videoWidth = 1280;
+        videoHeight = 720;
+    }
+    aspectRatio = videoWidth / videoHeight;
+    const cols = resolution; 
+    const rows = Math.floor(cols / aspectRatio);
+    tempCanvas = document.createElement('canvas');
+    tempCanvas.width = cols;
+    tempCanvas.height = rows;
+    tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true }); 
+    if (asciiPlane) {
+        scene.remove(asciiPlane);
+        asciiPlane.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) child.material.dispose();
+        });
+    }
+    asciiPlane = new THREE.Group();
+    const totalWidth = 4;
+    const totalHeight = 4 / aspectRatio;
+    const cellWidth = totalWidth / cols;
+    const cellHeight = totalHeight / rows;
+    const pixelGeometry = new THREE.PlaneGeometry(cellWidth, cellHeight); 
+    asciiPlane.userData.columns = [];
+    asciiPlane.userData.cols = cols;
+    asciiPlane.userData.rows = rows;
+    asciiPlane.userData.cellWidth = cellWidth;
+    asciiPlane.userData.cellHeight = cellHeight;
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            const pixelMat = new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                side: THREE.DoubleSide
+            });
+            const pixelMesh = new THREE.Mesh(pixelGeometry, pixelMat);
+            const posX = (x - cols / 2) * cellWidth + cellWidth / 2;
+            const posY = -(y - rows / 2) * cellHeight - cellHeight / 2;
+            pixelMesh.position.set(posX, posY, 0);
+            pixelMesh.userData.gridX = x;
+            pixelMesh.userData.gridY = y;
+            asciiPlane.add(pixelMesh);
+            asciiPlane.userData.columns.push(pixelMesh);
+        }
+    }
+    scene.add(asciiPlane);
+    if (inputMode === 'webcam') {
+        asciiPlane.scale.x = -1; 
+    } else {
+        asciiPlane.scale.x = 1;
+    }
+}
+
+function processFrame() {
+    if (!isReady) return;
+    if (inputMode === 'webcam' && videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) return;
+    if (inputMode === 'image' && !staticImage) return;
+    if (!asciiPlane || !asciiPlane.userData.columns) return;
+    const cols = tempCanvas.width;
+    const rows = tempCanvas.height;
+    const columns = asciiPlane.userData.columns;
+    if (inputMode === 'webcam') {
+        tempCtx.drawImage(videoElement, 0, 0, cols, rows);
+    } else if (inputMode === 'image') {
+        tempCtx.drawImage(staticImage, 0, 0, cols, rows);
+   
+    }
+    const imageData = tempCtx.getImageData(0, 0, cols, rows);
+    const pixels = imageData.data;
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            const idx = (y * cols + x) * 4;
+            let r = pixels[idx];
+            let g = pixels[idx + 1];
+            let b = pixels[idx + 2];
+            const adjusted = adjustColor(r, g, b);
+            r = adjusted.r;
+            g = adjusted.g;
+            b = adjusted.b;
+            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            const normalizedLuminance = luminance / 255;
+            const columnIndex = y * cols + x;
+            if (columnIndex < columns.length) {
+                const pixel = columns[columnIndex];
+                const normalizedDepth = depthFactor / 100;
+                const depth = normalizedLuminance * normalizedDepth * 3;
+                pixel.position.z = depth;
+                pixel.material.color.setRGB(r / 255, g / 255, b / 255);
+                pixel.material.emissive.setRGB(
+                    r / 255 * 0.2,
+                    g / 255 * 0.2,
+                    b / 255 * 0.2
+                );
+            }
+        }
+    }
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    // Logica Timer sempre attiva per gestire le fasi
+    updateLogic();
+    processFrame();
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+function stopWebcam() {
+    if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        videoElement.srcObject = null;
+        webcamStream = null;
+    }
+}
+
+function loadStaticImage(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            stopWebcam();
+            staticImage = img;
+            inputMode = 'image';
+            
+            webcamBtnWrapper.style.display = 'flex'; 
+            
+            initASCIIPlane(true);
+            
+            // Reset Logic for Image
+            depthFactor = DEPTH_START_VALUE;
+            resolution = RESOLUTION_MIN_VALUE;
+            startTimers();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function switchToWebcam() {
+    staticImage = null;
+    
+    webcamBtnWrapper.style.display = 'none';
+    
+    // Reset
+    depthFactor = DEPTH_START_VALUE;
+    resolution = RESOLUTION_MIN_VALUE;
+    resolutionInput.removeEventListener('input', updateResolutionDisplay);
+    applyResolutionButton.removeEventListener('click', applyResolution);
+    depthInput.removeEventListener('input', updateDepthDisplay);
+    
+    await initWebcam(); 
+}
+
+function adjustColor(r, g, b) {
+    const brightnessFactor = brightness / 100;
+    r = r * brightnessFactor;
+    g = g * brightnessFactor;
+    b = b * brightnessFactor;
+    const contrastFactor = contrast / 100;
+    r = ((r / 255 - 0.5) * contrastFactor + 0.5) * 255;
+    g = ((g / 255 - 0.5) * contrastFactor + 0.5) * 255;
+    b = ((b / 255 - 0.5) * contrastFactor + 0.5) * 255;
+    // No Saturation
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    return { r, g, b };
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+document.getElementById('brightness').addEventListener('input', (e) => {
+    document.getElementById('brightness-value').textContent = e.target.value;
+    brightness = parseInt(e.target.value);
+});
+
+document.getElementById('contrast').addEventListener('input', (e) => {
+    document.getElementById('contrast-value').textContent = e.target.value;
+    contrast = parseInt(e.target.value);
+});
+
+document.getElementById('save-frame').addEventListener('click', () => {
+    // Render scene
+    renderer.render(scene, camera);
+    
+    // Create temp canvas for composition
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = renderer.domElement.width;
+    exportCanvas.height = renderer.domElement.height;
+    const ctx = exportCanvas.getContext('2d');
+    
+    // Draw 3D Scene
+    ctx.drawImage(renderer.domElement, 0, 0);
+    
+    // Draw Footer Data
+    const margin = 50;
+    const w = exportCanvas.width;
+    const h = exportCanvas.height;
+    
+    ctx.font = 'bold 28px "Inter", sans-serif'; 
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    
+    // Calculate Variables
+    const timeString = formatTime(totalGreenTimeSeconds * 1000);
+    
+    // Positions
+    const p1 = w * 0.2;
+    const p2 = w * 0.5;
+    const p3 = w * 0.8;
+    
+    ctx.fillText(`PROFONDITÀ _ ${depthFactor}`, p1, h - margin);
+    ctx.fillText(`RISOLUZIONE _ ${resolution}`, p2, h - margin);
+    ctx.fillText(`TEMPO _ ${timeString}`, p3, h - margin);
+    
+    exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `ascii_3d_${Date.now()}.png`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }, 'image/png');
+});
+
+document.getElementById('upload-image').addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+        document.getElementById('tooltip-upload').classList.add('visible');
+    }, 1000);
+});
+document.getElementById('upload-image').addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    document.getElementById('tooltip-upload').classList.remove('visible');
+});
+
+document.getElementById('switch-webcam').addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+        document.getElementById('tooltip-webcam').classList.add('visible');
+    }, 1000);
+});
+document.getElementById('switch-webcam').addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    document.getElementById('tooltip-webcam').classList.remove('visible');
+});
+
+initScene();
+initWebcam();
+</script>
+</body>
+</html>

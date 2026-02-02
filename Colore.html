@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colore 3D Live - Ultimate Fixed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLASSMORPHISM DESIGN SYSTEM --- */
+        :root {
+            --bg-primary: #000000;
+            --glass-bg: rgba(18, 18, 18, 0.75);
+            --glass-bg-hover: rgba(18, 18, 18, 0.85);
+            --glass-blur: blur(24px) saturate(180%) brightness(0.8);
+            --border-glass: rgba(255, 255, 255, 0.18);
+            --border-glass-strong: rgba(255, 255, 255, 0.25);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.75);
+            --shadow-elevation: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --gradient-primary: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 100%);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-xl: 24px;
+            --radius-md: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        html, body {
+            width: 100vw; height: 100vh; overflow: hidden;
+            background: var(--bg-primary); 
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* MAIN VIEW */
+        #main-view {
+            width: 100%; height: 100%; position: relative;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100'><defs><pattern id='p' width='10' height='10' patternUnits='userSpaceOnUse'><path d='M0 0h10v10H0z' fill='rgba(255, 255, 255, 0.03)'/></pattern></defs><rect width='100' height='100' fill='url(%23p)'/></svg>");
+            display: flex; justify-content: center; align-items: center;
+            perspective: 1500px; 
+            overflow: hidden;
+        }
+
+        /* CANVAS CONTAINER */
+        #canvas-container {
+            position: relative;
+            width: 100%; max-width: 160vh; aspect-ratio: 16 / 9; max-height: 90vh;
+            transform-style: preserve-3d;
+            transition: transform 0.8s var(--ease-smooth);
+        }
+
+        #canvas-container.mode-2d {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 16px;
+        }
+
+        #canvas-container.mode-3d {
+            display: block;
+            width: 600px; height: 337px; 
+            aspect-ratio: auto;
+            max-width: none; max-height: none;
+        }
+
+        /* QUADRANT STYLE */
+        .quadrant {
+            position: relative;
+            background: rgba(18, 18, 18, 0.8);
+            overflow: hidden;
+            cursor: crosshair;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-elevation);
+            width: 100%; height: 100%;
+            transition: all 0.6s var(--ease-smooth), box-shadow 0.3s;
+            transform-style: preserve-3d;
+            backface-visibility: visible !important;
+        }
+
+        #canvas-container.mode-3d .quadrant {
+            position: absolute; top: 0; left: 0;
+            background: transparent; 
+            cursor: pointer; 
+        }
+        
+        /* Base Layer Opacity Fix */
+        #canvas-container.mode-3d #quadrant-d {
+            background: #000;
+            opacity: 1 !important;
+        }
+
+        #canvas-container.mode-3d .quadrant:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 40px rgba(167, 139, 250, 0.3);
+        }
+
+        /* Focus Mode */
+        .quadrant.focus {
+            transform: translateZ(250px) !important; 
+            z-index: 2000 !important;
+            opacity: 1 !important;
+            border: 2px solid #A78BFA;
+            background: rgba(0,0,0,0.95) !important; 
+            box-shadow: 0 0 120px rgba(0,0,0,0.9);
+            cursor: crosshair !important; 
+        }
+        
+        .quadrant.blur-out {
+            opacity: 0.1 !important;
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .quadrant canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; object-fit: cover;
+            pointer-events: none; 
+            backface-visibility: visible; 
+        }
+        
+        .quadrant.active-draw canvas.draw-canvas,
+        #canvas-container.mode-2d .quadrant canvas.draw-canvas { pointer-events: auto; }
+        
+        .draw-canvas { z-index: 2; opacity: 1; }
+
+        /* --- CONTROLS PANEL --- */
+        #controls {
+            position: fixed; top: 90px; right: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 24px; border-radius: var(--radius-xl); z-index: 3000;
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-elevation);
+            transition: transform 0.4s var(--ease-smooth), opacity 0.4s;
+            width: 320px; max-height: calc(100vh - 120px); overflow-y: auto;
+        }
+
+        #controls.hidden { transform: translateX(120%); opacity: 0; pointer-events: none; }
+
+        /* --- FLOATING BUTTONS --- */
+        #floating-buttons {
+            position: fixed; bottom: 30px; left: 30px;
+            display: flex; flex-direction: column-reverse; gap: 16px;
+            z-index: 3001;
+        }
+
+        .float-btn {
+            width: 56px; height: 56px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s var(--ease-smooth);
+            box-shadow: var(--shadow-elevation);
+            font-weight: 700;
+        }
+
+        .float-btn:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border-color: var(--text-primary);
+        }
+
+        #btn-3d { color: #A78BFA; border-color: rgba(167, 139, 250, 0.3); font-size: 16px; }
+        #btn-3d.active { background: rgba(167, 139, 250, 0.2); border-color: #A78BFA; color: #fff; box-shadow: 0 0 20px rgba(167, 139, 250, 0.2); }
+        
+        #btn-color-toggle { font-size: 12px; }
+        #btn-color-toggle.active { background: rgba(96, 165, 250, 0.2); border-color: #60A5FA; color: #fff; }
+        
+        #btn-trash { color: #F87171; font-size: 24px; }
+        #btn-trash:hover { background: rgba(248, 113, 113, 0.15); border-color: #F87171; }
+
+        /* --- INPUTS & SLIDERS --- */
+        .control-group { margin-bottom: 24px; }
+        
+        label { 
+            display: block; font-size: 12px; font-weight: 600; margin-bottom: 12px; 
+            color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .slider-value { float: right; font-weight: 700; color: var(--text-primary); }
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 6px;
+            background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px;
+            background: var(--text-primary); border-radius: 50%; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 2px solid rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* --- BUTTONS --- */
+        button.std-btn {
+            width: 100%; padding: 14px; margin-top: 8px;
+            background: rgba(255,255,255,0.08); color: var(--text-primary);
+            border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+        }
+        button.std-btn:hover { 
+            background: rgba(255,255,255,0.15); 
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        #export-all { 
+            background: var(--gradient-primary); 
+            border: none; color: #fff; 
+            box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
+            margin-top: 16px; /* Spaziatura corretta da Deforma */
+        }
+        #export-all:hover { box-shadow: 0 8px 32px rgba(167, 139, 250, 0.5); }
+
+        #upload-image {
+            background: rgba(33, 150, 243, 0.2);
+            border-color: rgba(33, 150, 243, 0.4);
+            margin-top: 24px; /* Spaziatura corretta da Deforma */
+        }
+        #upload-image:hover {
+            background: rgba(33, 150, 243, 0.35);
+        }
+
+        /* --- NAVIGATION & POPUPS --- */
+        #back-button, #menu-toggle {
+            position: fixed; top: 30px; width: 48px; height: 48px;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass); border-radius: 50%;
+            cursor: pointer; z-index: 3001; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s var(--ease-smooth); box-shadow: var(--shadow-elevation);
+        }
+        #back-button { left: 30px; } #menu-toggle { right: 30px; }
+        #back-button:hover, #menu-toggle:hover { 
+            transform: translateY(-2px) scale(1.05); 
+            background: var(--glass-bg-hover);
+            border-color: var(--text-primary);
+        }
+        
+        #back-button.close-mode::before { content: '✕'; font-size: 20px; }
+        #back-button::before { content: '←'; font-size: 24px; }
+        #menu-toggle::before { content: '☰'; font-size: 22px; }
+        #menu-toggle.open::before { content: '✕'; }
+
+        /* Stili rimossi per delete-popup */
+
+    </style>
+</head>
+<body>
+
+    <div id="main-view">
+        <div id="back-button"></div>
+        <div id="menu-toggle" title="Apri/Chiudi Controlli"></div>
+
+        <div id="floating-buttons">
+            <button id="btn-trash" class="float-btn">🗑️</button>
+            <button id="btn-color-toggle" class="float-btn active">Color</button>
+            <button id="btn-3d" class="float-btn active">3D</button>
+        </div>
+
+        <div id="canvas-container" class="mode-3d">
+            <div class="quadrant" id="quadrant-a" data-layer="1">
+                <canvas class="webcam-canvas"></canvas>
+                <canvas class="draw-canvas"></canvas>
+            </div>
+            <div class="quadrant" id="quadrant-b" data-layer="2">
+                <canvas class="webcam-canvas"></canvas>
+                <canvas class="draw-canvas"></canvas>
+            </div>
+            <div class="quadrant" id="quadrant-c" data-layer="3">
+                <canvas class="webcam-canvas"></canvas>
+                <canvas class="draw-canvas"></canvas>
+            </div>
+            <div class="quadrant" id="quadrant-d" data-layer="4">
+                <canvas class="webcam-canvas"></canvas>
+                <canvas class="draw-canvas"></canvas>
+            </div>
+        </div>
+
+        <div id="controls" class="hidden">
+            <div class="control-group">
+                <label>Dimensione Pennello <span class="slider-value" id="brush-value">20</span></label>
+                <input type="range" id="brush-size" min="5" max="100" value="20" step="1">
+            </div>
+            <div class="control-group" style="margin-top: 25px;">
+                <label>Luminosità <span class="slider-value" id="brightness-value">0</span></label>
+                <input type="range" id="brightness" min="-100" max="100" value="0" step="1">
+            </div>
+            <div class="control-group">
+                <label>Contrasto <span class="slider-value" id="contrast-value">0</span></label>
+                <input type="range" id="contrast" min="-100" max="100" value="0" step="1">
+            </div>
+            
+            <button id="upload-image" class="std-btn">Carica Immagine</button>
+            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+            
+            <button id="export-all" class="std-btn">Esporta</button>
+        </div>
+    </div>
+
+<script>
+    // --- VARIABILI GLOBALI ---
+    const container = document.getElementById('canvas-container');
+    let video;
+    let quadrants = {};
+    let figureContexts = {}; 
+    let figureCanvases = {};
+    let isDrawing = false;
+    let brushSize = 20;
+    let currentFigure = 1;
+    let brightness = 0;
+    let contrast = 0;
+    let useCustomImage = false;
+    let customImage = null;
+    
+    // INIT STATE: 3D e Color attivi di default
+    let colorMode = 'color'; 
+    let is3DMode = true;
+    
+    let layerHasContent = { 1: false, 2: false, 3: false, 4: false };
+    
+    // Variabili 3D
+    let rotX = -15, rotY = 35;
+    let spacingZ = 60; 
+    let isDragging3D = false;
+    let dragStartX, dragStartY;
+    let focusedLayer = null;
+    let wasDragging = false; 
+    let isCompressed = false;
+
+    const COLORS = {
+        1: { r: 145, g: 144, b: 198 },   
+        2: { r: 195, g: 151, b: 190 },   
+        3: { r: 158, g: 207, b: 164 },   
+        4: { r: 224, g: 227, b: 160 }    
+    };
+
+    // --- INIT ---
+    async function init() {
+        video = document.createElement('video');
+        video.autoplay = true; video.playsInline = true;
+
+        quadrants = {
+            a: document.getElementById('quadrant-a'),
+            b: document.getElementById('quadrant-b'),
+            c: document.getElementById('quadrant-c'),
+            d: document.getElementById('quadrant-d')
+        };
+
+        for (let i = 1; i <= 3; i++) {
+            const c = document.createElement('canvas');
+            figureCanvases[i] = c;
+            figureContexts[i] = c.getContext('2d', { willReadFrequently: true });
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                resizeCanvases(1280, 720);
+                setupDrawingLogic();
+                update3DTransform(); 
+                loop();
+            };
+        } catch (e) {
+            console.warn("Webcam fallback", e);
+            resizeCanvases(1280, 720);
+            setupDrawingLogic();
+            update3DTransform();
+            loop();
+        }
+
+        setupUI();
+    }
+
+    function resizeCanvases(w, h) {
+        Object.values(quadrants).forEach(q => {
+            const wc = q.querySelector('.webcam-canvas');
+            const dc = q.querySelector('.draw-canvas');
+            wc.width = w; wc.height = h;
+            dc.width = w; dc.height = h;
+            dc.getContext('2d').clearRect(0,0,w,h);
+        });
+        for (let i = 1; i <= 3; i++) {
+            figureCanvases[i].width = w;
+            figureCanvases[i].height = h;
+            figureContexts[i].clearRect(0,0,w,h);
+        }
+    }
+
+    // --- GESTIONE DISEGNO (CORRETTA PER MOUSELEAVE) ---
+    function setupDrawingLogic() {
+        setupQuadrantEvents(quadrants.a, 1, 2, 1); 
+        setupQuadrantEvents(quadrants.b, 3, 2, 2);
+        setupQuadrantEvents(quadrants.c, 1, 3, 3);
+        setupQuadrantEvents(quadrants.d, null, null, 4); 
+    }
+
+    function setupQuadrantEvents(quadrant, leftFig, rightFig, layerID) {
+        const canvas = quadrant.querySelector('.draw-canvas');
+        let lastX, lastY;
+
+        function drawMove(e) {
+            if(!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            
+            const cx = (clientX - rect.left) * (canvas.width / rect.width);
+            const cy = (clientY - rect.top) * (canvas.height / rect.height);
+
+            const maskCtx = figureContexts[currentFigure];
+            maskCtx.lineWidth = brushSize; maskCtx.lineCap = 'round'; maskCtx.strokeStyle = 'white';
+            maskCtx.beginPath(); maskCtx.moveTo(lastX, lastY); maskCtx.lineTo(cx, cy); maskCtx.stroke();
+
+            lastX = cx; lastY = cy;
+        }
+
+        function startPath(e) {
+            if (is3DMode && focusedLayer !== layerID) return;
+            if (!leftFig && !rightFig) return;
+            
+            if (layerID === 1 && (leftFig===1 || rightFig===2)) layerHasContent[1] = true;
+            if (layerID === 2 && (leftFig===3 || rightFig===2)) layerHasContent[2] = true;
+            if (layerID === 3 && (leftFig===1 || rightFig===3)) layerHasContent[3] = true;
+
+            isDrawing = true;
+            if(e.button === 2 && rightFig) currentFigure = rightFig;
+            else currentFigure = leftFig;
+
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            lastX = (clientX - rect.left) * (canvas.width / rect.width);
+            lastY = (clientY - rect.top) * (canvas.height / rect.height);
+            
+            drawMove(e);
+        }
+
+        function endPath() { isDrawing = false; }
+
+        canvas.addEventListener('mousedown', startPath);
+        canvas.addEventListener('mousemove', drawMove);
+        canvas.addEventListener('mouseup', endPath);
+        
+        // --- FIX: STOP DISEGNO SE MOUSE ESCE ---
+        canvas.addEventListener('mouseleave', endPath); 
+        
+        canvas.addEventListener('touchstart', startPath);
+        canvas.addEventListener('touchmove', drawMove);
+        canvas.addEventListener('touchend', endPath);
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    // --- RENDERING LOOP ---
+    function loop() {
+        requestAnimationFrame(loop);
+        
+        const src = useCustomImage ? customImage : video;
+        if (!src || (src.tagName === 'VIDEO' && src.readyState < 2)) return;
+
+        const w = figureCanvases[1].width;
+        const h = figureCanvases[1].height;
+        
+        const tempC = document.createElement('canvas');
+        tempC.width = w; tempC.height = h;
+        const tCtx = tempC.getContext('2d');
+        
+        tCtx.save();
+        if (!useCustomImage) {
+            tCtx.translate(w, 0);
+            tCtx.scale(-1, 1);
+            tCtx.drawImage(src, 0, 0, w, h);
+        } else {
+            const imgRatio = src.width / src.height;
+            const canvasRatio = w / h;
+            let sx=0, sy=0, sw=src.width, sh=src.height;
+            
+            if(imgRatio > canvasRatio) {
+                sw = src.height * canvasRatio;
+                sx = (src.width - sw) / 2;
+            } else {
+                sh = src.width / canvasRatio;
+                sy = (src.height - sh) / 2;
+            }
+            tCtx.drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
+        }
+        tCtx.restore();
+        
+        let frameData = tCtx.getImageData(0, 0, w, h);
+        frameData = applyEffects(frameData); 
+
+        const f1 = figureContexts[1].getImageData(0,0,w,h).data;
+        const f2 = figureContexts[2].getImageData(0,0,w,h).data;
+        const f3 = figureContexts[3].getImageData(0,0,w,h).data;
+
+        renderQuadrant(quadrants.a, frameData, f1, f2, f3, 1);
+        renderQuadrant(quadrants.b, frameData, f1, f2, f3, 2);
+        renderQuadrant(quadrants.c, frameData, f1, f2, f3, 3);
+        renderQuadrant(quadrants.d, frameData, f1, f2, f3, 4);
+
+        if (is3DMode) update3DTransform();
+    }
+
+    function applyEffects(imageData) {
+        const data = imageData.data;
+        const f = (259 * (contrast + 255)) / (255 * (259 - contrast));
+        const brightOffset = brightness + (colorMode === 'color' ? 40 : 0);
+
+        for (let i = 0; i < data.length; i+=4) {
+            if (colorMode === 'bw') {
+                const gray = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+                let val = f * (gray - 128) + 128 + brightOffset;
+                val = val < 0 ? 0 : (val > 255 ? 255 : val);
+                data[i] = data[i+1] = data[i+2] = val;
+            } else {
+                for(let k=0; k<3; k++) {
+                    let val = f * (data[i+k] - 128) + 128 + brightOffset;
+                    data[i+k] = val < 0 ? 0 : (val > 255 ? 255 : val);
+                }
+            }
+        }
+        return imageData;
+    }
+
+    function renderQuadrant(quadrant, baseData, f1, f2, f3, layerID) {
+        const canvas = quadrant.querySelector('.webcam-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const output = ctx.createImageData(baseData);
+        const d = output.data;
+        const s = baseData.data; 
+        const col = COLORS;
+        const isCol = (colorMode === 'color');
+
+        const showGhost = is3DMode && !layerHasContent[layerID] && focusedLayer !== layerID && layerID !== 4;
+        const isTransparentBackground = is3DMode && layerID !== 4;
+        
+        // Show full image on D only when almost compressed
+        const showFullImageOnD = is3DMode && isCompressed && layerID === 4;
+
+        for (let i = 0; i < d.length; i+=4) {
+            if (showFullImageOnD) {
+                d[i] = s[i]; d[i+1] = s[i+1]; d[i+2] = s[i+2]; d[i+3] = 255;
+                continue;
+            }
+
+            const m1 = f1[i+3] > 100; 
+            const m2 = f2[i+3] > 100;
+            const m3 = f3[i+3] > 100;
+
+            let r=0, g=0, b=0;
+            let active = false;
+
+            if (layerID === 1) { 
+                if (m1) { r=col[1].r; g=col[1].g; b=col[1].b; active=true; }
+                else if (m2 && !m3) { r=col[2].r; g=col[2].g; b=col[2].b; active=true; }
+            } else if (layerID === 2) { 
+                if (m3 && !m1) { r=col[2].r; g=col[2].g; b=col[2].b; active=true; } 
+                else if (m2 && !m1 && !m3) { r=col[3].r; g=col[3].g; b=col[3].b; active=true; }
+            } else if (layerID === 3) { 
+                 if (m1) { r=col[4].r; g=col[4].g; b=col[4].b; active=true; }
+                 else if (m3 && !m1) { r=col[3].r; g=col[3].g; b=col[3].b; active=true; }
+            } else if (layerID === 4) { 
+                if (!m1 && !m2 && !m3) {
+                    r=255; g=255; b=255; active=true; 
+                }
+            }
+
+            if (active && layerID !== 4) {
+                 const sr = s[i], sg = s[i+1], sb = s[i+2];
+                 if (isCol) {
+                     d[i] = (sr * r)/255; d[i+1] = (sg * g)/255; d[i+2] = (sb * b)/255;
+                 } else {
+                     d[i] = (r>128) ? 255 - ((255-sr)*(255-r))/128 : (sr*r)/128;
+                     d[i+1] = (g>128) ? 255 - ((255-sg)*(255-g))/128 : (sg*g)/128;
+                     d[i+2] = (b>128) ? 255 - ((255-sb)*(255-b))/128 : (sb*b)/128;
+                 }
+                 d[i+3] = 255;
+            } else if (layerID === 4 && active) {
+                 if (!m1 && !m2 && !m3) {
+                     d[i]=s[i]; d[i+1]=s[i+1]; d[i+2]=s[i+2]; d[i+3]=255;
+                 } else {
+                    d[i]=0; d[i+1]=0; d[i+2]=0; d[i+3]=255;
+                 }
+            } else {
+                if (isTransparentBackground) {
+                     d[i+3] = 0; 
+                } else {
+                     d[i]=0; d[i+1]=0; d[i+2]=0; d[i+3]=255; 
+                }
+            }
+            
+            if (showGhost && d[i+3] === 0) { 
+                let tr=255, tg=255, tb=255;
+                if(layerID===1) { tr=col[1].r; tg=col[1].g; tb=col[1].b; }
+                if(layerID===2) { tr=col[2].r; tg=col[2].g; tb=col[2].b; }
+                if(layerID===3) { tr=col[3].r; tg=col[3].g; tb=col[3].b; }
+                
+                const gray = (s[i]+s[i+1]+s[i+2])/3;
+                d[i] = (gray + tr)/2;
+                d[i+1] = (gray + tg)/2;
+                d[i+2] = (gray + tb)/2;
+                d[i+3] = 40; 
+            }
+        }
+        
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.putImageData(output, 0, 0);
+    }
+
+    // --- UI EVENTS ---
+    function setupUI() {
+        const menuBtn = document.getElementById('menu-toggle');
+        const controlsPanel = document.getElementById('controls');
+        const btnTrash = document.getElementById('btn-trash');
+        const btnColor = document.getElementById('btn-color-toggle');
+        const btn3D = document.getElementById('btn-3d');
+        const backBtn = document.getElementById('back-button');
+        // Rimosso: const popup = document.getElementById('delete-popup');
+        const uploadBtn = document.getElementById('upload-image');
+        const input = document.getElementById('image-upload');
+        const floatBtns = document.getElementById('floating-buttons');
+        
+        // Rimosso 'popup' dagli elementi su cui bloccare eventi
+        [controlsPanel, floatBtns, menuBtn, backBtn].forEach(el => {
+            el.addEventListener('mousedown', e => e.stopPropagation());
+            el.addEventListener('touchstart', e => e.stopPropagation());
+            el.addEventListener('mousemove', e => e.stopPropagation());
+            el.addEventListener('touchmove', e => e.stopPropagation());
+            el.addEventListener('wheel', e => e.stopPropagation());
+        });
+        
+        menuBtn.onclick = () => {
+            controlsPanel.classList.toggle('hidden');
+            menuBtn.classList.toggle('open');
+        };
+
+        // Modificata la logica di btnTrash per eliminazione immediata
+        btnTrash.onclick = (e) => { 
+            e.stopPropagation(); 
+            for(let i=1; i<=3; i++) figureContexts[i].clearRect(0,0,1280,720);
+            Object.values(quadrants).forEach(q => {
+                q.querySelector('.draw-canvas').getContext('2d').clearRect(0,0,1280,720);
+            });
+            layerHasContent = {1:false, 2:false, 3:false, 4:false};
+        };
+
+        // Rimosso: document.getElementById('btn-cancel-delete').onclick = ...
+        // Rimosso: document.getElementById('btn-confirm-delete').onclick = ...
+
+        btnColor.onclick = (e) => {
+            e.stopPropagation();
+            if (colorMode === 'bw') {
+                colorMode = 'color';
+                btnColor.textContent = 'Color';
+                btnColor.classList.add('active');
+            } else {
+                colorMode = 'bw';
+                btnColor.textContent = 'B&W';
+                btnColor.classList.remove('active');
+            }
+        };
+
+        btn3D.onclick = (e) => { e.stopPropagation(); toggle3DMode(); };
+
+        backBtn.onclick = () => {
+            if (focusedLayer) {
+                exitFocus(); 
+            } else {
+                window.location.href = 'index.html?mode=pratica'; 
+            }
+        };
+
+        document.getElementById('brush-size').oninput = (e) => {
+            brushSize = parseInt(e.target.value);
+            document.getElementById('brush-value').innerText = brushSize;
+        };
+        document.getElementById('brightness').oninput = (e) => {
+            brightness = parseInt(e.target.value);
+            document.getElementById('brightness-value').innerText = brightness;
+        };
+        document.getElementById('contrast').oninput = (e) => {
+            contrast = parseInt(e.target.value);
+            document.getElementById('contrast-value').innerText = contrast;
+        };
+
+        uploadBtn.onclick = () => {
+            if (useCustomImage) {
+                useCustomImage = false;
+                customImage = null;
+                uploadBtn.textContent = "Carica Immagine";
+            } else {
+                input.click();
+            }
+        };
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = new Image();
+                    img.onload = () => { 
+                        customImage = img; 
+                        useCustomImage = true; 
+                        uploadBtn.textContent = "Torna a Webcam"; 
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            input.value = '';
+        };
+
+        document.getElementById('export-all').onclick = () => {
+            const gridCanvas = document.createElement('canvas');
+            gridCanvas.width = 2560; gridCanvas.height = 1440;
+            const gCtx = gridCanvas.getContext('2d');
+            gCtx.drawImage(quadrants.a.querySelector('.webcam-canvas'), 0, 0);
+            gCtx.drawImage(quadrants.b.querySelector('.webcam-canvas'), 1280, 0);
+            gCtx.drawImage(quadrants.c.querySelector('.webcam-canvas'), 0, 720);
+            gCtx.drawImage(quadrants.d.querySelector('.webcam-canvas'), 1280, 720);
+            
+            downloadURI(gridCanvas.toDataURL(), 'colore-grid.png');
+
+            const layers = ['a', 'b', 'c', 'd'];
+            layers.forEach((id, i) => {
+                setTimeout(() => {
+                     downloadURI(quadrants[id].querySelector('.webcam-canvas').toDataURL(), `colore-layer-${id}.png`);
+                }, 500 + (i * 300));
+            });
+        };
+        
+        function downloadURI(uri, name) {
+            const link = document.createElement("a");
+            link.download = name;
+            link.href = uri;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        const container3D = document.getElementById('main-view');
+        
+        container3D.addEventListener('mousedown', e => {
+            if (e.target.closest('#controls') || e.target.closest('.float-btn') || e.target.closest('#menu-toggle') || e.target.closest('#back-button')) return;
+            
+            if(!is3DMode) return;
+            isDragging3D = false; 
+            wasDragging = false;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+        });
+        
+        window.addEventListener('mouseup', () => {
+            isDragging3D = false;
+        });
+        
+        window.addEventListener('mousemove', e => {
+            if(!is3DMode || focusedLayer) return;
+            
+            if (e.buttons === 1) { 
+                const moveDist = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+                if (moveDist > 5) {
+                    isDragging3D = true;
+                    wasDragging = true; 
+                }
+
+                if (isDragging3D) {
+                    const dx = e.clientX - (dragStartX || e.clientX);
+                    const dy = e.clientY - (dragStartY || e.clientY);
+                    rotY += dx * 0.5;
+                    rotX -= dy * 0.5;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                }
+            }
+        });
+
+        container3D.addEventListener('wheel', e => {
+            if(!is3DMode || focusedLayer) return;
+            spacingZ += e.deltaY * -0.1;
+            spacingZ = Math.max(0, Math.min(300, spacingZ));
+        });
+
+        Object.values(quadrants).forEach((q, idx) => {
+            const layerID = idx + 1; 
+            q.onclick = (e) => {
+                if (!is3DMode) return; 
+                if (wasDragging) {
+                    wasDragging = false; 
+                    return; 
+                }
+                
+                if (focusedLayer === layerID) {
+                    return;
+                } else {
+                    focusLayer(layerID);
+                }
+            };
+        });
+    }
+
+    function toggle3DMode() {
+        is3DMode = !is3DMode;
+        const container = document.getElementById('canvas-container');
+        const btn = document.getElementById('btn-3d');
+        
+        if (is3DMode) {
+            btn.classList.add('active');
+            container.classList.remove('mode-2d');
+            container.classList.add('mode-3d');
+            rotX = -15; rotY = 35; spacingZ = 60;
+            document.querySelectorAll('.draw-canvas').forEach(c => c.style.pointerEvents = 'none');
+        } else {
+            btn.classList.remove('active');
+            container.classList.add('mode-2d');
+            container.classList.remove('mode-3d');
+            container.style.transform = ''; 
+            exitFocus(); 
+            document.querySelectorAll('.draw-canvas').forEach(c => c.style.pointerEvents = 'auto');
+             Object.values(quadrants).forEach(q => {
+                 q.style.transform = '';
+                 q.style.opacity = '';
+                 q.classList.remove('focus', 'blur-out', 'compressed', 'active-draw');
+             });
+        }
+    }
+
+    function update3DTransform() {
+        if (focusedLayer) return; 
+
+        const container = document.getElementById('canvas-container');
+        container.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        
+        isCompressed = spacingZ < 2; 
+        
+        if (isCompressed) container.classList.add('is-compressed');
+        else container.classList.remove('is-compressed');
+
+        const qList = [quadrants.a, quadrants.b, quadrants.c, quadrants.d];
+        qList.forEach((q, i) => {
+            // FIX 3D ORDERING: Invertiamo l'ordine Z per mettere l'ultimo (D) dietro
+            // Prima (errato per te): (i * spacing) - (1.5 * spacing) -> D=Front, A=Back
+            // Ora (corretto per te): (1.5 * spacing) - (i * spacing) -> A=Front, D=Back
+            const z = (1.5 * spacingZ) - (i * spacingZ);
+            q.style.transform = `translateZ(${z}px)`;
+        });
+    }
+
+    function focusLayer(layerID) {
+        if (!is3DMode) return;
+        focusedLayer = layerID;
+        
+        const backBtn = document.getElementById('back-button');
+        backBtn.classList.add('close-mode');
+        
+        const container = document.getElementById('canvas-container');
+        container.style.transform = `rotateX(0deg) rotateY(0deg)`;
+
+        const qMap = { 1: quadrants.a, 2: quadrants.b, 3: quadrants.c, 4: quadrants.d };
+        
+        for(let i=1; i<=4; i++) {
+            const q = qMap[i];
+            if(i === layerID) {
+                q.classList.add('focus');
+                q.classList.remove('blur-out');
+                q.classList.add('active-draw'); 
+                
+                const canvas = q.querySelector('.draw-canvas');
+                if(canvas) canvas.style.pointerEvents = 'auto';
+                
+            } else {
+                q.classList.remove('focus');
+                q.classList.add('blur-out');
+                q.classList.remove('active-draw');
+                q.style.transform = `translateZ(-500px)`; 
+                
+                const canvas = q.querySelector('.draw-canvas');
+                if(canvas) canvas.style.pointerEvents = 'none';
+            }
+        }
+    }
+
+    function exitFocus() {
+        focusedLayer = null;
+        
+        const backBtn = document.getElementById('back-button');
+        backBtn.classList.remove('close-mode');
+        
+        Object.values(quadrants).forEach(q => {
+            q.classList.remove('focus', 'blur-out', 'active-draw');
+            const canvas = q.querySelector('.draw-canvas');
+            if(canvas) canvas.style.pointerEvents = 'none'; 
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>

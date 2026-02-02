@@ -1,0 +1,2738 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <title>QUIeTE</title>
+    <meta charset="utf-8">
+    <style>
+        :root {
+            --font-pixel: 'Silkscreen', cursive;    
+            --font-ui: 'Inter', sans-serif;         
+            --bg-dark: #121212;
+            --glass-dark-card: rgba(18, 18, 18, 0.75);
+            --glass-light-ui: rgba(255, 255, 255, 0.08);
+            --glass-dark-strong: rgba(18, 18, 18, 0.95);
+            --border-glass: rgba(255, 255, 255, 0.18);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.75);
+            --text-tertiary: rgba(255, 255, 255, 0.55);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.16);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.24);
+            --radius-main: 24px;
+            --radius-secondary: 16px;
+            --radius-small: 12px;
+            --gradient-purple: linear-gradient(135deg, #A78BFA, #C4B5FD);
+            --ease-elastic: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --animation-speed: 1.5s;
+        }
+
+        body {
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 40%),
+        var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-pixel);
+    margin: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+        #glass-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 8000; 
+            background: rgba(18, 18, 18, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+        }
+        #glass-overlay.active { opacity: 1; pointer-events: auto; }
+
+        #main-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #webcam { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); z-index: 0; }
+
+        #top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px; display: flex;
+            align-items: center; justify-content: center; z-index: 5000; pointer-events: none;
+            transition: transform 0.6s var(--ease-smooth), background 0.5s ease; transform: translateY(0);
+        }
+        #top-bar.slide-up { transform: translateY(-100%); }
+        #top-bar.active-bar { background: rgba(18, 18, 18, 0.2); backdrop-filter: blur(5px); border-bottom: 1px solid var(--border-glass); pointer-events: auto; }
+
+        #logo-container {
+            position: absolute; top: 50vh; left: 50%; transform: translate(-50%, -50%);
+            transition: all 1.2s var(--ease-elastic); z-index: 5000; cursor: pointer; pointer-events: auto;
+        }
+        #logo-img { width: 180px; height: auto; transition: width 1.2s var(--ease-elastic); }
+        #logo-container.state-top { top: 30px; }
+        #logo-container.state-top #logo-img { width: 90px; }
+        #logo-container.fade-out { opacity: 0; pointer-events: none; }
+
+        #hamburger-btn {
+            position: fixed; left: 30px; top: 25px; width: 30px; height: 20px; display: flex;
+            flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 9999; pointer-events: auto;
+        }
+        #hamburger-btn span { display: block; width: 100%; height: 2px; background-color: var(--text-primary); border-radius: 2px; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        #hamburger-btn.open span:nth-child(1) { transform: translateY(9px) rotate(45deg); } 
+        #hamburger-btn.open span:nth-child(2) { opacity: 0; }
+        #hamburger-btn.open span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); } 
+
+        #side-menu {
+            position: fixed; top: 0; left: 0; width: 320px; height: 100vh;
+            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-glass); transform: translateX(-100%);
+            transition: transform 0.6s var(--ease-smooth); z-index: 9998;
+            display: flex; flex-direction: column; padding: 120px 40px 40px 40px; box-sizing: border-box;
+        }
+        #side-menu.open { transform: translateX(0); }
+        .menu-items-container { flex-grow: 1; }
+        .menu-item {
+            font-family: var(--font-pixel); font-size: 24px; color: var(--text-secondary); margin-bottom: 35px;
+            cursor: pointer; transition: all 0.3s ease; opacity: 0; transform: translateX(-20px); display: block;
+        }
+        .menu-item.active-page { color: var(--text-tertiary); cursor: default; pointer-events: none; position: relative; }
+        .menu-item.active-page::before { content: '•'; position: absolute; left: -20px; color: var(--text-tertiary); }
+        #side-menu.open .menu-item { opacity: 1; transform: translateX(0); }
+        #side-menu.open .menu-item:nth-child(1) { transition-delay: 0.1s; }
+        #side-menu.open .menu-item:nth-child(2) { transition-delay: 0.2s; }
+        #side-menu.open .menu-item:nth-child(3) { transition-delay: 0.3s; }
+        .menu-item:hover { color: var(--text-primary); transform: translateX(10px) !important; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .menu-footer { margin-top: auto; opacity: 0; transform: translateY(20px); transition: all 0.5s ease 0.4s; cursor: pointer; }
+        #side-menu.open .menu-footer { opacity: 0.6; transform: translateY(0); }
+        #side-menu.open .menu-footer:hover { opacity: 1; }
+        .menu-footer img { width: 80px; height: auto; }
+
+        #overlay-pages { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 7000; pointer-events: none; display: none; }
+        #overlay-pages.visible { display: block; pointer-events: auto; background-color: var(--bg-dark); background-image: radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 40%); }
+        .page-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; opacity: 0; transition: opacity 0.5s ease; }
+        .page-content.active { display: flex; opacity: 1; }
+        .page-content h1 { font-size: clamp(30px, 5vw, 60px); color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .page-content p { font-family: var(--font-ui); font-size: 18px; color: var(--text-tertiary); font-weight: 300; letter-spacing: 1px; animation: pulse 3s infinite; }
+
+        .text-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, 100px); opacity: 0;
+            transition: all 2.0s var(--ease-elastic); text-align: center; width: 80%; max-width: 900px; pointer-events: none; z-index: 20;
+        }
+        .text-overlay h1 { font-size: clamp(20px, 3vw, 36px); line-height: 1.5; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; }
+        .text-overlay.visible { opacity: 1; transform: translate(-50%, -50%); }
+        .text-overlay.exit-up { opacity: 0; transform: translate(-50%, -150%); }
+
+        #phone-container {
+            width: 300px; height: 600px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, 150%);
+            overflow: hidden; background: var(--glass-dark-card); backdrop-filter: blur(20px) saturate(180%) brightness(0.8);
+            -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(0.8); border: 1px solid var(--border-glass);
+            border-radius: var(--radius-main); box-shadow: var(--shadow-glass); cursor: grab; transition: all 2.5s var(--ease-elastic); z-index: 30;
+        }
+        #phone-container.enter-scene { transform: translate(-50%, -50%); }
+        
+        #phone-screen {
+            width: 100%; height: 100%; background: var(--bg-dark); display: flex; font-family: var(--font-ui);
+            flex-direction: column; justify-content: space-between; align-items: center; padding: 50px 20px;
+            box-sizing: border-box; position: absolute; top: 0; left: 0; transition: transform 0.8s ease-in-out; z-index: 3;
+            border-radius: var(--radius-main); overflow: hidden;
+        }
+        #lockscreen-content { width: 100%; padding-top: 30px; text-align: left; }
+        #time { font-size: 56px; font-weight: 600; line-height: 1.1; color: var(--text-primary); }
+        #date { font-size: 18px; font-weight: 400; color: var(--text-secondary); }
+        #unlock-prompt p { font-size: 13px; color: var(--text-secondary); animation: pulse 2s infinite; white-space: nowrap; margin: 0; }
+        #phone-screen.unlocked { transform: translateY(-100%); }
+
+        #app-content {
+            width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; flex-direction: column;
+            position: absolute; top: 0; left: 0; transform: translateY(100%); transition: transform 0.8s ease-in-out;
+            position: relative; z-index: 2; border-radius: var(--radius-main); overflow: hidden;
+        }
+        #app-content.visible { transform: translateY(0); }
+
+        .social-header {
+            width: 100%; padding: 12px 20px; background: var(--glass-light-ui); backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%); border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex; justify-content: space-between; align-items: center; z-index: 2;
+            transition: opacity 1s ease, transform 1s ease; box-sizing: border-box; 
+        }
+        .social-header .left-section { display: flex; align-items: center; gap: 8px; }
+        .social-header .app-icon { width: 28px; height: 28px; background: var(--gradient-purple); border-radius: var(--radius-small); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; }
+        .social-header .app-name { font-weight: 500; font-size: 15px; letter-spacing: 0.3px; color: var(--text-primary); }
+        .social-header .camera-dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; }
+        .home-bar { width: 100%; height: 20px; display: flex; justify-content: center; align-items: center; padding: 8px 0; background-color: transparent; z-index: 2; position: relative; box-sizing: border-box; }
+        .home-bar .bar { width: 120px; height: 4px; background: rgba(255, 255, 255, 0.3); border-radius: var(--radius-small); }
+
+        .social-feed { flex-grow: 1; overflow: hidden; position: relative; }
+        #webcam-feed { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #canvas-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; 
+            transform-origin: center center; 
+            transition: opacity 1.5s ease-out;
+            opacity: 1;
+        }
+        #canvas-layer.fade-out { opacity: 0; }
+
+        .social-post-image { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #000; position: absolute; top: 0; left: 0; }
+        .social-post-image p { font-size: 14px; color: var(--text-tertiary); }
+
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
+
+        .finger-dot { position: fixed; width: 20px; height: 20px; border: 2px solid white; border-radius: 50%; z-index: 10000; display: none; pointer-events: none; transform: translate(-50%, -50%); }
+        #index-dot { background-color: rgba(255, 0, 0, 0.8); box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); }
+        #thumb-dot { background-color: rgba(0, 255, 0, 0.8); box-shadow: 0 0 15px rgba(0, 255, 0, 0.8); }
+        .finger-dot.pinching { background-color: rgba(0, 255, 255, 0.9) !important; box-shadow: 0 0 20px rgba(0, 255, 255, 0.9) !important; }
+        
+        #controls-container {
+            position: fixed; bottom: 30px; right: 30px; display: flex; justify-content: flex-end; align-items: end;
+            pointer-events: none; z-index: 4000; transform: translateY(150px); transition: transform 1.2s var(--ease-elastic);
+        }
+        #controls-container.visible { transform: translateY(0); }
+        .control-group { pointer-events: auto; display: flex; gap: 16px; }
+        
+        .float-btn {
+            width: 60px; height: 60px; background: var(--glass-dark-card); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass); border-radius: 16px; color: var(--text-primary);
+            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s var(--ease-elastic); box-shadow: var(--shadow-glass);
+        }
+        #btn-pinch { position: relative; background: var(--glass-dark-card); border: 1px solid var(--border-glass); }
+        #btn-pinch .pinch-dots { display: flex; gap: 6px; opacity: 0.5; transition: all 0.3s; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: block; }
+        .dot.red { background-color: #FF4444; } .dot.green { background-color: #44FF44; }
+        #btn-pinch.active { background: var(--glass-dark-strong); border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+        #btn-pinch.active .pinch-dots { opacity: 1; transform: scale(1.1); }
+
+        #final-logo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 3000; display: none; pointer-events: none; }
+
+        #scene-container {
+    position: fixed;
+    width: 593px;
+    height: 201px;
+    top: calc(50% - 100px);
+    left: calc(50% - 296px);
+    perspective: 1500px;
+    
+    transition: opacity 2.0s ease, transform 2.0s ease;
+    transform: translateY(50px);
+    
+    z-index: 6000; 
+    opacity: 0;
+    pointer-events: none;
+    display: none; 
+}
+        
+        #scene-container.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .glass-card {
+            width: 100%;
+            height: 100%;
+            border-radius: 24px; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+            transition: all var(--animation-speed) var(--ease-elastic);
+            transform-style: preserve-3d;
+            border: 1px solid var(--border-glass); 
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 600; 
+            letter-spacing: 2px;
+            padding: 10px;
+            text-align: center;
+            line-height: 1.2;
+            
+            background: var(--glass-dark-card);
+            backdrop-filter: blur(20px) saturate(180%) brightness(0.8);
+            -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(0.8);
+            box-shadow: var(--shadow-glass);
+            color: var(--text-primary);
+        }
+
+        #btn-main { z-index: 4; transform: rotateX(0deg) translateY(0px); background: rgba(18,18,18,0.4); border-color: rgba(255,255,255,0.05); 
+            display: flex; justify-content: center; align-items: center; padding: 0; } 
+        
+        #btn-logo-canvas { width: auto; height: auto; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+        #btn-logo-canvas.show-canvas { opacity: 1; }
+              
+        #btn-teoria { z-index: 3; opacity: 0; pointer-events: none; transform: rotateX(0deg) translateY(0px); }
+        #btn-pratica { z-index: 2; opacity: 0; pointer-events: none; transform: rotateX(0deg) translateY(0px); }
+        #btn-espansioni { z-index: 1; opacity: 0; pointer-events: none; transform: rotateX(0deg) translateY(0px); }
+
+        .glass-card.hover { box-shadow: var(--shadow-hover); border-color: rgba(255, 255, 255, 0.5); }
+        
+        #scene-container.open #btn-main { transform: translateY(-25vh) rotateX(35deg) scale(1.05); background: var(--glass-dark-card); border-color: var(--border-glass); z-index: 10; }
+        #scene-container.open #btn-teoria { opacity: 1; pointer-events: auto; transform: translateY(-8vh) rotateX(25deg); z-index: 3; }
+        #scene-container.open #btn-pratica { opacity: 1; pointer-events: auto; transform: translateY(8vh) rotateX(25deg); z-index: 2; }
+        #scene-container.open #btn-espansioni { opacity: 1; pointer-events: auto; transform: translateY(24vh) rotateX(25deg); z-index: 1; }
+
+        #scene-container.open .glass-card.hover { transform: inherit; translate: 30px 0; box-shadow: var(--shadow-hover), 0 0 20px rgba(255, 255, 255, 0.4); }
+        #scene-container.open #btn-main.hover { transform: translateY(-25vh) rotateX(35deg) scale(1.05) translateX(30px); }
+        #scene-container.open #btn-teoria.hover { transform: translateY(-8vh) rotateX(25deg) translateX(30px); }
+        #scene-container.open #btn-pratica.hover { transform: translateY(8vh) rotateX(25deg) translateX(30px); }
+        #scene-container.open #btn-espansioni.hover { transform: translateY(24vh) rotateX(25deg) translateX(30px); }
+
+.sub-card {
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    transform: rotateX(0deg) translateY(0px);
+    background: var(--glass-dark-card);
+}
+
+/* --- SEQUENZA PRATICA (L1) --- */
+#scene-container.level-pratica-open #btn-pratica {
+    transform: translateY(-29vh) rotateX(35deg) scale(1.05) !important;
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.6); 
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0.6 !important; 
+    pointer-events: none; 
+}
+
+#scene-container.level-pratica-open #btn-teoria,
+#scene-container.level-pratica-open #btn-espansioni,
+#scene-container.level-pratica-open #btn-main {
+    transform: translateY(150vh) rotateX(25deg) !important; 
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
+}
+
+#scene-container.level-teoria-open #btn-teoria {
+    transform: translateY(-29vh) rotateX(35deg) scale(1.05);
+    z-index: 10;
+    background: #121212 !important;
+    border-color: rgba(255, 255, 255, 0.5);
+    opacity: 1 !important; 
+    pointer-events: none; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+#scene-container.level-pratica-open #btn-pratica {
+    transform: translateY(-29vh) rotateX(35deg) scale(1.05) !important;
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.6); 
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0.6 !important; 
+    pointer-events: none; 
+}
+
+#scene-container.level-pratica-open #btn-teoria,
+#scene-container.level-pratica-open #btn-espansioni,
+#scene-container.level-pratica-open #btn-main {
+    transform: translateY(150vh) rotateX(25deg) !important; 
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
+}
+
+#scene-container.level-teoria-open #btn-pratica,
+#scene-container.level-teoria-open #btn-espansioni {
+    transform: translateY(100vh) rotateX(25deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#scene-container.level-teoria-open #btn-teoria {
+    transform: translateY(-29vh) rotateX(35deg) scale(1.05);
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.6); 
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0.6 !important; 
+    pointer-events: none; 
+}
+#scene-container.level-teoria-open #teoria-1-attenzione {
+    opacity: 1; pointer-events: auto;
+    transform: translateY(-8vh) rotateX(25deg);
+    z-index: 3;
+    transition-delay: 0.1s;
+}
+
+#scene-container.level-teoria-open #teoria-2-timedesign {
+    opacity: 1; pointer-events: auto;
+    transform: translateY(8vh) rotateX(25deg);
+    z-index: 2;
+    transition-delay: 0.2s;
+}
+
+#scene-container.level-teoria-open #teoria-3-rallentare {
+    opacity: 1; pointer-events: auto;
+    transform: translateY(24vh) rotateX(25deg);
+    z-index: 1;
+    transition-delay: 0.3s;
+}
+
+#scene-container.level-teoria-open #btn-teoria.hover {
+    transform: translateY(-29vh) rotateX(35deg) scale(1.05) translateX(10px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 50, 50, 0.5);
+}
+
+#scene-container.level-teoria-open #teoria-1-attenzione.hover {
+    transform: translateY(-8vh) rotateX(25deg) translateX(30px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+#scene-container.level-teoria-open #teoria-2-timedesign.hover {
+    transform: translateY(8vh) rotateX(25deg) translateX(30px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+#scene-container.level-teoria-open #teoria-3-rallentare.hover {
+    transform: translateY(24vh) rotateX(25deg) translateX(30px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+.fullscreen-container { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(5px);
+    z-index: 7000; 
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    opacity: 0; 
+    transition: opacity 0.5s ease; 
+}
+
+.fullscreen-container, #volto-fullscreen, #photoviz-fullscreen { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(8px);
+    z-index: 7000; 
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    opacity: 0; 
+    transition: opacity 0.5s ease; 
+}
+
+.fullscreen-container.active, #volto-fullscreen.active, #photoviz-fullscreen.active { 
+    display: flex; 
+    opacity: 1; 
+}
+
+.fullscreen-content, .volto-popup-wrapper, .photoviz-popup-wrapper { 
+    width: min(90vw, 1000px);
+    height: min(80vh, 600px);
+    display: flex; 
+    background: var(--glass-dark-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    overflow: hidden;
+    transform: translateY(50px) scale(0.95);
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.photoviz-popup-wrapper {
+    flex-direction: column;
+    padding: 30px;
+}
+
+.fullscreen-container.active .fullscreen-content,
+#volto-fullscreen.active .volto-popup-wrapper,
+#photoviz-fullscreen.active .photoviz-popup-wrapper {
+    transform: translateY(0) scale(1);
+}
+
+.fullscreen-left-panel, #volto-left, #volto-right { 
+    flex: 1; 
+    padding: 40px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: flex-start; 
+}
+
+.fullscreen-right-panel, #volto-center { 
+    flex: 1.3; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+#volto-center { border-right: 1px solid var(--border-glass); }
+
+.textbox-container { 
+    width: 100%; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: transparent; 
+    border: none; 
+    padding: 0; 
+    overflow-y: auto; 
+}
+
+.textbox-container h1 { 
+    font-family: var(--font-pixel); 
+    font-size: 28px; 
+    margin-bottom: 24px; 
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 12px;
+}
+
+.textbox-container p { 
+    font-family: 'Inter', sans-serif !important; 
+    font-size: 16px; 
+    line-height: 1.6; 
+    color: var(--text-primary); 
+    text-align: left; 
+    font-weight: 300;
+}
+
+.image-container, #volto-canvas-container, #photoviz-image-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.animation-image, #volto-canvas, #photoviz-canvas {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#metodi-container { transform: scale(0.8); }
+
+#left-edge-back.force-visible {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    background: linear-gradient(to right, rgba(0,0,0,0.4), transparent);
+}
+
+
+/* --- SEQUENZA TEORIA (L1) --- */
+#scene-container.level-teoria #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+#scene-container.level-teoria #btn-pratica { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-teoria #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-teoria #btn-teoria { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+#scene-container.level-teoria-open #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; pointer-events: none; }
+#scene-container.level-teoria-open #btn-pratica, #scene-container.level-teoria-open #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; }
+#scene-container.level-teoria-open #btn-teoria { transform: translateY(-29vh) rotateX(35deg) scale(1.05); z-index: 10; background: rgba(10,10,10,0.85); }
+#scene-container.level-teoria-open #teoria-1-attenzione { opacity: 1; pointer-events: auto; transform: translateY(-8vh) rotateX(25deg); z-index: 3; }
+#scene-container.level-teoria-open #teoria-2-timedesign { opacity: 1; pointer-events: auto; transform: translateY(8vh) rotateX(25deg); z-index: 2; }
+#scene-container.level-teoria-open #teoria-3-rallentare { opacity: 1; pointer-events: auto; transform: translateY(24vh) rotateX(25deg); z-index: 1; }
+
+/* --- SEQUENZA ATTENZIONE (L2) --- */
+#scene-container.level-attenzione #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+#scene-container.level-attenzione #teoria-2-timedesign { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-attenzione #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-attenzione #teoria-1-attenzione { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+#scene-container.level-attenzione-open #teoria-1-attenzione { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+#scene-container.level-attenzione-open #att-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
+#scene-container.level-attenzione-open #att-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
+
+/* --- SEQUENZA TIME DESIGN (L2) --- */
+#scene-container.level-timedesign #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+#scene-container.level-timedesign #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-timedesign #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-timedesign #teoria-2-timedesign { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+#scene-container.level-timedesign-open #teoria-2-timedesign { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+#scene-container.level-timedesign-open #time-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
+#scene-container.level-timedesign-open #time-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
+
+/* --- SEQUENZA RALLENTARE (L2) --- */
+#scene-container.level-rallentare #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+#scene-container.level-rallentare #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-rallentare #teoria-2-timedesign { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+#scene-container.level-rallentare #teoria-3-rallentare { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+#scene-container.level-rallentare-open #teoria-3-rallentare { transform: translateY(-30vh) rotateX(35deg) scale(1.05); z-index: 6; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+#scene-container.level-rallentare-open #rall-1 { opacity: 1; pointer-events: auto; transform: translateY(-11vh) rotateX(25deg); z-index: 5; }
+#scene-container.level-rallentare-open #rall-2 { opacity: 1; pointer-events: auto; transform: translateY(1vh) rotateX(25deg); z-index: 4; }
+#scene-container.level-rallentare-open #rall-3 { opacity: 1; pointer-events: auto; transform: translateY(13vh) rotateX(25deg); z-index: 3; }
+#scene-container.level-rallentare-open #rall-4 { opacity: 1; pointer-events: auto; transform: translateY(25vh) rotateX(25deg); z-index: 2; }
+
+#close-button.visible { display: flex !important; pointer-events: auto; }
+#close-button.hover { background-color: rgba(100,0,0,0.8); border-color: rgba(255,50,50,0.9); transform: translateY(-4px); }
+
+#left-edge-back {
+    position: fixed;
+    top: 80px;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: calc(100vh - 80px);
+    z-index: 20000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease, opacity 0.3s ease, visibility 0.3s;
+    opacity: 0;
+    visibility: hidden;
+    border-radius: 0;
+}
+
+#left-edge-back.is-active, #left-edge-back.force-visible {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+#left-edge-back span {
+    font-family: var(--font-pixel);
+    font-size: 50px;
+    color: white;
+    transform: scale(1);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
+    opacity: 0.5;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+#left-edge-back:hover {
+    background: linear-gradient(to right, rgba(0,0,0,0.8), transparent);
+}
+
+#left-edge-back:hover span {
+    opacity: 1; 
+    transform: scale(1.2) translateX(10px);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+
+.fullscreen-container, #volto-fullscreen, #photoviz-fullscreen { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: rgba(0, 0, 0, 0.85); 
+    backdrop-filter: blur(12px);
+    z-index: 7000; 
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    opacity: 0; 
+    transition: opacity 0.4s ease; 
+}
+
+.fullscreen-container.active, #volto-fullscreen.active, #photoviz-fullscreen.active { 
+    display: flex; 
+    opacity: 1; 
+}
+
+.fullscreen-content, .volto-popup-wrapper, .photoviz-popup-wrapper { 
+    width: min(90vw, 1100px);
+    height: min(85vh, 650px);
+    display: flex; 
+    background: #1a1a1a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: translateY(30px) scale(0.98);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.photoviz-popup-wrapper {
+    flex-direction: column;
+    padding: 0;
+}
+
+.fullscreen-container.active .fullscreen-content,
+#volto-fullscreen.active .volto-popup-wrapper,
+#photoviz-fullscreen.active .photoviz-popup-wrapper {
+    transform: translateY(0) scale(1);
+}
+
+.fullscreen-left-panel, #volto-left, #volto-right { 
+    flex: 1; 
+    padding: 40px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: flex-start;
+    background: #1a1a1a;
+}
+
+.fullscreen-right-panel, #volto-center { 
+    flex: 1.3; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.textbox-container { 
+    width: 100%; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: transparent; 
+    border: none; 
+    padding: 0; 
+    overflow-y: auto; 
+}
+
+.textbox-container h1 { 
+    font-family: var(--font-pixel); 
+    font-size: 24px; 
+    margin-bottom: 20px; 
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 15px;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+.textbox-container p { 
+    font-family: 'Inter', sans-serif !important; 
+    font-size: 16px; 
+    line-height: 1.7; 
+    color: #e0e0e0; 
+    text-align: left; 
+    font-weight: 300;
+    margin: 0;
+}
+
+.image-container, #volto-canvas-container, #photoviz-image-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.animation-image, #volto-canvas, #photoviz-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+#photoviz-title {
+    font-family: var(--font-pixel);
+    font-size: 24px;
+    margin: 20px 0;
+    text-align: center;
+    width: 100%;
+}
+
+#photoviz-center-stage {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    overflow: hidden;
+}
+
+#photoviz-controls-area {
+    width: 100%;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    background: #1a1a1a;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    box-sizing: border-box;
+}
+
+#logo-container.nav-active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    top: 40px !important;
+    left: 50% !important;
+    transform: translate(-50%, 0) !important;
+    transition: all 1.0s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+#logo-container.nav-active #logo-img {
+    width: 80px !important;
+}
+
+#scene-container.quiete-top #btn-main {
+    transform: translateY(calc(-50vh + 30px)) scale(0.35) rotateX(0deg) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 8000 !important;
+    transition: transform 1.2s cubic-bezier(0.23, 1, 0.32, 1); 
+}
+
+#scene-container.quiete-top #btn-main:hover {
+    transform: translateY(calc(-50vh + 30px)) scale(0.4) rotateX(0deg) !important;
+    cursor: pointer;
+}
+
+
+#scene-container.level-teoria-open #btn-pratica,
+#scene-container.level-teoria-open #btn-espansioni {
+    transform: translateY(150vh) rotateX(25deg) !important; 
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
+}
+
+
+.sub-card {
+    transform: translateY(-8vh) rotateX(0deg) scale(0.8);
+    opacity: 0;
+    z-index: 0;
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+#scene-container.level-attenzione-open #att-1.hover,
+#scene-container.level-attenzione-open #att-2.hover,
+#scene-container.level-timedesign-open #time-1.hover,
+#scene-container.level-timedesign-open #time-2.hover {
+    transform: translateY(0px) rotateX(25deg) translateX(30px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+#scene-container.level-attenzione-open #att-2.hover,
+#scene-container.level-timedesign-open #time-2.hover { transform: translateY(20vh) rotateX(25deg) translateX(30px); }
+
+#scene-container.level-rallentare-open #rall-1.hover,
+#scene-container.level-rallentare-open #rall-2.hover,
+#scene-container.level-rallentare-open #rall-3.hover,
+#scene-container.level-rallentare-open #rall-4.hover {
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 255, 255, 0.9);
+    transform: translateY(-11vh) rotateX(25deg) translateX(30px); 
+}
+#scene-container.level-rallentare-open #rall-2.hover { transform: translateY(1vh) rotateX(25deg) translateX(30px); }
+#scene-container.level-rallentare-open #rall-3.hover { transform: translateY(13vh) rotateX(25deg) translateX(30px); }
+#scene-container.level-rallentare-open #rall-4.hover { transform: translateY(25vh) rotateX(25deg) translateX(30px); }
+
+#scene-container:not(.open):not(.quiete-top) #btn-main {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: rotateX(0deg) translateY(0px) !important;
+}
+
+.photoviz-btn {
+    flex: 0 1 250px; 
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.photoviz-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-5px);
+}
+
+.photoviz-btn.active-state {
+    background: var(--gradient-purple);
+    border-color: white;
+    transform: scale(1.05);
+}
+
+.pv-number {
+    font-size: 24px; 
+    font-weight: 700;
+    color: white;
+}
+
+.pv-year {
+    font-family: var(--font-pixel);
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+#hamburger-btn { z-index: 30001; }
+        #side-menu { z-index: 30000; }
+
+        #pratica-grid-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 6500; pointer-events: none; opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        #pratica-grid-view.active { opacity: 1; pointer-events: auto; }
+
+        .pratica-grid-container {
+            height: 70vh; aspect-ratio: 1 / 1; width: auto;
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
+            position: relative;
+        }
+        
+        .p-grid-item { position: relative; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+        .p-grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.8); transition: filter 0.3s; }
+        
+        .p-grid-item:nth-child(1) img { border-radius: 24px 0 0 0; }
+        .p-grid-item:nth-child(2) img { border-radius: 0 24px 0 0; }
+        .p-grid-item:nth-child(3) img { border-radius: 0 0 0 24px; }
+        .p-grid-item:nth-child(4) img { border-radius: 0 0 24px 0; }
+        
+        .p-grid-item:hover { 
+            transform: scale(1.05); z-index: 10; 
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3); 
+        }
+        .p-grid-item:hover img { filter: brightness(1.1); border: 4px solid white; }
+
+        .p-grid-item:nth-child(1):hover img { border-radius: 24px 0 0 0; }
+        .p-grid-item:nth-child(2):hover img { border-radius: 0 24px 0 0; }
+        .p-grid-item:nth-child(3):hover img { border-radius: 0 0 0 24px; }
+        .p-grid-item:nth-child(4):hover img { border-radius: 0 0 24px 0; }
+        
+        .program-label {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px 24px; border-radius: 16px;
+            color: white; 
+            font-family: 'Silkscreen', cursive; font-size: 18px;
+            text-transform: uppercase; letter-spacing: 1px;
+            opacity: 0; pointer-events: none; white-space: nowrap; z-index: 20; transition: all 0.3s;
+        }
+        .p-grid-item:nth-child(1) .program-label, .p-grid-item:nth-child(3) .program-label { right: 105%; }
+        .p-grid-item:nth-child(2) .program-label, .p-grid-item:nth-child(4) .program-label { left: 105%; }
+        .p-grid-item:hover .program-label { opacity: 1; transform: translateY(-50%) scale(1); }
+
+        #scene-container.level-pratica #btn-teoria,
+        #scene-container.level-pratica #btn-espansioni,
+        #scene-container.level-pratica #btn-main { 
+            transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; 
+        }
+        
+        #scene-container.level-pratica-open #btn-teoria,
+        #scene-container.level-pratica-open #btn-espansioni,
+        #scene-container.level-pratica-open #btn-main { 
+             transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; 
+        }
+        
+        #scene-container.level-pratica-open #btn-pratica {
+            transform: translateY(-30vh) rotateX(35deg) scale(1.05);
+            z-index: 10;
+            background: rgba(10, 10, 10, 0.6); 
+            border-color: rgba(255, 255, 255, 0.3);
+            opacity: 0.6 !important; 
+            pointer-events: none; 
+        }
+
+#side-menu.open ~ #left-edge-back {
+    display: none !important;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="left-edge-back"><span>&lt;</span></div>
+
+    <div id="hamburger-btn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div id="side-menu">
+        <div class="menu-items-container">
+            <div class="menu-item active-page" id="menu-home" onclick="handleMenuNavigation('home')">Home</div>
+            <div class="menu-item" id="menu-info" onclick="handleMenuNavigation('info')">Info/About</div>
+            <div class="menu-item" id="menu-filosofia" onclick="handleMenuNavigation('filosofia')">Filosofia</div>
+        </div>
+        <div class="menu-footer" onclick="handleMenuNavigation('home')">
+            <img src="QUIeTE.png" alt="QUIeTE Logo">
+        </div>
+    </div>
+
+    <div id="glass-overlay"></div>
+<div id="time1-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel">
+                <div class="textbox-container">
+                    <h1>Principio di Time Design</h1> 
+                    <p id="time1-text">Il Time Design restituisce agency alle persone creando sistemi che permettono di sviluppare consapevolezza rispetto ai contenuti analizzati quotidianamente. Non progetta artefatti in maniera unilaterale dai progettisti verso gli utenti, ma rende questi ultimi co-creatori del progetto stesso. Riprendendo il sistema dei media caldi e freddi di McLuhan, attraverso la creazione di media freddi l'utente tende a riempire le informazioni con esperienze e conoscenze personali, continuando a progettare e modificare il contenuto in base all'utilizzo. Il tempo diventa variabile controllabile dall'utente anziché vincolo imposto dal designer.</p>
+                </div>
+            </div>
+            <div class="fullscreen-right-panel">
+                <div class="image-container">
+                    <canvas id="time1-canvas" class="animation-image"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="time2-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel" style="flex: 1; align-items: center; text-align: center;">
+                <div class="textbox-container" style="align-items: center;">
+                    <h1>Obiettivo della Piattaforma</h1>
+                    <p id="time2-text" style="text-align: center; max-width: 800px;">La piattaforma mira a creare un rallentamento visivo in contrasto con l'immediatezza delle immagini digitali, favorendo maggiore attenzione. Tre strategie operano simultaneamente: il pizzico delle dita nello spazio sostituisce il rapido mouse tradizionale, introducendo rallentamento fisico; la stratificazione unita alle animazioni organizza i contenuti in profondità temporale richiedendo esplorazione graduale; i filtri della webcam trasformano l'immagine dell'utente in base al tempo dedicato, materializzando visivamente la qualità dell'attenzione. L'obiettivo è contrastare l'immediatezza restituendo controllo temporale all'utente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rall1-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel">
+                <div class="textbox-container">
+                    <h1>Rilievo</h1>
+                    <p id="rall1-text">Rilievo scompone l'immagine webcam in nuvola di pixel tridimensionale dove ogni gruppo di pixel si sposta lungo l'asse Z in base alla propria luminosità. L'immagine viene frammentata in griglia regolare creando un paesaggio dinamico di pixel che fluttua nello spazio. Il sistema implementa rallentamento temporale: all'apertura presenta risoluzione minima con espansione massima, ma con il tempo la risoluzione aumenta progressivamente mentre la profondità si comprime, trasformando la nuvola tridimensionale in immagine piatta definita. Il messaggio materializza il principio: l'attenzione dedicata ricostruisce ordine e chiarezza dal caos iniziale.</p>
+                </div>
+            </div>
+            <div class="fullscreen-right-panel">
+                <div class="image-container">
+                    <img id="rall1-animation" class="animation-image" src="">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="rall2-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel">
+                <div class="textbox-container">
+                    <h1>Deforma</h1>
+                    <p id="rall2-text">Deforma traduce feedback personale in distorsione anamorfica dell'immagine webcam. L'utente risponde a quattro domande sul proprio uso dei social attraverso slider, e ogni risposta deforma l'immagine su assi specifici. La deformazione opera in maniera anamorfica: frontalmente l'immagine appare intatta, ma ruotando la vista si rivela il grado di distorsione prodotto dalle risposte. Le domande sensibilizzano sul tempo e il tipo di contenuto consumato sui social. Il messaggio è chiaro: le nostre abitudini digitali deformano la percezione di noi stessi, ma questa deformazione resta invisibile fino a quando non scegliamo di osservarla da prospettive diverse.</p>
+                </div>
+            </div>
+            <div class="fullscreen-right-panel">
+                <div class="image-container">
+                    <img id="rall2-animation" class="animation-image" src="">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="rall3-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel">
+                <div class="textbox-container">
+                    <h1>Lettere</h1>
+                    <p id="rall3-text">Lettere mappa caratteri digitati direttamente sul volto tracciato dalla webcam. Il sistema crea una maschera tridimensionale attraverso riconoscimento facciale, e ogni lettera digitata viene posizionata su un punto specifico del volto. Inizialmente le lettere si muovono dinamicamente, ma raggiungendo un numero minimo di caratteri si stabilizzano, aderendo progressivamente alla superficie facciale. Più tempo l'utente dedica a descriversi con attenzione, più le lettere definiscono il volto. Il messaggio sensibilizza verso una riflessione: la descrizione testuale di sé è limitata sul digitale e diventa maschera identitaria che copre i tratti reali.</p>
+                </div>
+            </div>
+            <div class="fullscreen-right-panel">
+                <div class="image-container">
+                    <img id="rall3-animation" class="animation-image" src="">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="rall4-fullscreen" class="fullscreen-container">
+        <div class="fullscreen-content">
+            <div class="fullscreen-left-panel">
+                <div class="textbox-container">
+                    <h1>Colore</h1>
+                    <p id="rall4-text">Colore scompone l'immagine in quattro strati cromaticamente complementari progettati per sovrapposizione fisica su acetati. L'algoritmo risolve un problema di ottimizzazione: ogni pixel appare in massimo due strati, i due strati utilizzano colori complementari, e la sovrapposizione ricostruisce l'immagine originale. L'utente edita i layer con pennello virtuale, e le aree cancellate vengono automaticamente ricalcolate negli altri layer per mantenere coerenza. Il sistema può essere visualizzato in 3D espandendo e comprimendo gli strati nello spazio. Il messaggio esplora la stratificazione come principio temporale: l'informazione si rivela progressivamente attraverso livelli sovrapposti.</p>
+                </div>
+            </div>
+            <div class="fullscreen-right-panel">
+                <div class="image-container">
+                    <img id="rall4-animation" class="animation-image" src="">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="photoviz-fullscreen">
+        <div class="photoviz-popup-wrapper">
+            <h1 id="photoviz-title">Tempo di attenzione su uno schermo</h1>
+            <div id="photoviz-center-stage">
+                <div id="photoviz-image-wrapper">
+                    <canvas id="photoviz-canvas"></canvas>
+                </div>
+            </div>
+            <div id="photoviz-controls-area">
+                <div id="btn-2004" class="photoviz-btn">
+                    <div class="pv-seconds-group">
+                        <span class="pv-number">150</span>
+                        <span class="pv-label">secondi</span>
+                    </div>
+                    <div class="pv-year">2004</div>
+                    <div class="pv-citation">(Mark et al., 2016)</div>
+                </div>
+                <div id="btn-2023" class="photoviz-btn">
+                    <div class="pv-seconds-group">
+                        <span class="pv-number">47</span>
+                        <span class="pv-label">secondi</span>
+                    </div>
+                    <div class="pv-year">2023</div>
+                    <div class="pv-citation">(Mark, 2023)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="volto-fullscreen">
+        <div class="volto-popup-wrapper">
+            <div id="volto-left">
+                <div class="textbox-container">
+                    <h1>Volto</h1>
+                    <p>Il volto costituisce la rappresentazione più immediata e frontale dell'identità digitale. La fotocamera del telefono, sdoppiata in lente esterna e interna, si configura come dispositivo attraverso cui ci identifichiamo nel sistema. Il selfie ha trasformato quello che era privilegio esclusivo dei potenti in pratica quotidiana di massa, creando una relazione speculare senza precedenti: vediamo noi stessi mentre ci fotografiamo. Il volto digitale non riflette passivamente ciò che siamo, ma costruisce attivamente ciò che vogliamo essere, diventando modello a cui il volto reale dovrebbe conformarsi.</p>
+                </div>
+            </div>
+            <div id="volto-center">
+                <div id="volto-canvas-container">
+                    <canvas id="volto-canvas"></canvas>
+                </div>
+            </div>
+            <div id="volto-right">
+                <div class="textbox-container">
+                    <h1>Risoluzione</h1>
+                    <p>La risoluzione costituisce la rappresentazione grafica dell'attenzione: il numero di pixel in un'immagine corrisponde alla quantità di dati processati. L'attenzione umana funziona secondo la medesima logica: un'informazione può essere processata per un determinato tempo con una certa intensità, ma quanto più siamo rapidi e superficiali, tanto più il contenuto risulta poco definito. Più tempo investiamo nello scansionare un'informazione, più questa risulterà nitida. Un'immagine di bassa qualità rappresenta la scarsità di attenzione, mentre un'immagine definita corrisponde a un grado di attenzione elevato.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+    <div class="modal-close-button"></div>
+    <div id="modal-content">
+        <h1 id="modal-title"></h1>
+        <p id="modal-text"></p>
+    </div>
+</div>
+    
+    <div id="close-button" style="display:none; position:fixed; top:20px; left:20px; width:60px; height:60px; border-radius:50%; background:rgba(18,18,18,0.75); border:1px solid rgba(255,255,255,0.18); z-index:9000; color:white; font-size:30px; justify-content:center; align-items:center; cursor:pointer;">&larr;</div>
+
+    <div id="overlay-pages">
+        <div id="page-info" class="page-content">
+            <h1>info/about</h1>
+            <p>prossimamente...</p>
+        </div>
+        <div id="page-filosofia" class="page-content">
+            <h1>filosofia</h1>
+            <p>prossimamente...</p>
+        </div>
+    </div>
+
+    <div id="main-wrapper">
+        <video id="webcam" playsinline autoplay muted></video>
+
+        <div id="top-bar">
+            <div id="logo-container">
+                <img id="logo-img" src="QUIeTE.png" alt="QUIeTE Logo">
+            </div>
+        </div>
+
+        <div id="text-question" class="text-overlay">
+            <h1>Sei tu a consumare i contenuti<br>o sono questi a consumare la tua attenzione?</h1>
+        </div>
+
+        <div id="phone-container">
+            <div id="phone-screen">
+                <div id="lockscreen-content">
+                    <div id="time">12:32</div>
+                    <div id="date">martedì 11 novembre</div>
+                </div>
+                <div id="unlock-prompt">
+                    <p>Scorri verso l'alto per sbloccare</p>
+                </div>
+            </div>
+
+            <div id="app-content">
+                <div class="social-header">
+                    <div class="left-section">
+                        <div class="app-icon">👤</div>
+                        <span class="app-name">Utente_distratto_1</span>
+                    </div>
+                    <div class="camera-dot"></div>
+                </div>
+                <div class="social-feed">
+                    <div class="social-post-image" id="webcam-placeholder">
+                        <p></p>
+                    </div>
+                    <div id="webcam-feed" style="display: none;">
+                        <canvas id="canvas-layer"></canvas>
+                    </div>
+                </div>
+                <div class="home-bar">
+                    <div class="bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="final-logo"></div>
+        
+        <div id="scene-container">
+            <div class="glass-card" id="btn-main"></div> 
+            <div class="glass-card" id="btn-teoria">TEORIA</div>
+            <div class="glass-card" id="btn-pratica">PRATICA</div>
+            <div class="glass-card" id="btn-espansioni">ESPANSIONI</div>
+
+            <div class="glass-card sub-card" id="teoria-1-attenzione">ATTENZIONE</div>
+            <div class="glass-card sub-card" id="teoria-2-timedesign">TIME DESIGN</div>
+            <div class="glass-card sub-card" id="teoria-3-rallentare">RALLENTARE</div>
+            
+            <div class="glass-card sub-card" id="att-1">VOLTO-RISOLUZIONE</div>
+            <div class="glass-card sub-card" id="att-2">PHOTOVIZ</div>
+            
+            <div class="glass-card sub-card" id="time-1">PRINCIPIO DI TIME DESIGN</div>
+            <div class="glass-card sub-card" id="time-2">OBIETTIVO DELLA PIATTAFORMA</div>
+            
+            <div class="glass-card sub-card" id="rall-1">RILIEVO</div>
+            <div class="glass-card sub-card" id="rall-2">DEFORMA</div>
+            <div class="glass-card sub-card" id="rall-3">LETTERE</div>
+            <div class="glass-card sub-card" id="rall-4">COLORE</div>
+        </div>
+
+        <div id="index-dot" class="finger-dot"></div>
+        <div id="thumb-dot" class="finger-dot"></div>
+
+<div id="pratica-grid-view">
+        <div class="pratica-grid-container">
+            <div class="p-grid-item" onclick="window.location.href='Rilievo.html'">
+                <img src="images/image1.png" alt="Rilievo">
+                <div class="program-label">RILIEVO</div>
+            </div>
+            <div class="p-grid-item" onclick="window.location.href='Deforma.html'">
+                <img src="images/image2.png" alt="Deforma">
+                <div class="program-label">DEFORMA</div>
+            </div>
+            <div class="p-grid-item" onclick="window.location.href='Lettere.html'">
+                <img src="images/image3.png" alt="Lettere">
+                <div class="program-label">LETTERE</div>
+            </div>
+            <div class="p-grid-item" onclick="window.location.href='Colore.html'">
+                <img src="images/image4.png" alt="Colore">
+                <div class="program-label">COLORE</div>
+            </div>
+        </div>
+    </div>
+        
+        <div id="controls-container">
+            <div class="control-group">
+                <button id="btn-pinch" class="float-btn">
+                    <div class="pinch-dots">
+                        <span class="dot green"></span>
+                        <span class="dot red"></span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div> 
+
+    <script>
+        let currentScene = 0; 
+        let isTransitioning = false;
+        let isAppActive = false;
+        let pointOfNoReturn = false;
+        let isMenuOpen = false;
+        let currentPage = 'home';
+
+	let lastLiftedCard = null;
+
+function liftCardAndOpen(cardId, openCallback) {
+    lastLiftedCard = cardId;
+    const card = document.getElementById(cardId);
+    
+
+    card.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
+    card.style.transform = 'translateY(-150vh) rotateX(45deg)';
+    
+
+    const siblings = Array.from(sceneContainer.children).filter(el => 
+        el.id !== cardId && 
+        el.classList.contains('sub-card') && 
+        window.getComputedStyle(el).opacity > 0
+    );
+    
+    siblings.forEach(sib => {
+        sib.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
+        sib.style.transform = 'translateY(150vh) rotateX(25deg)';
+    });
+
+
+    setTimeout(() => {
+        if(openCallback) openCallback();
+    }, 300);
+}
+
+function restoreLiftedCard() {
+    if(!lastLiftedCard) return;
+    
+    const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
+    allCards.forEach(c => {
+        c.removeAttribute('style');
+        
+        c.style.transform = '';
+        c.style.transition = '';
+        c.style.opacity = ''; 
+    });
+    
+    lastLiftedCard = null;
+}
+
+        const mainWrapper = document.getElementById('main-wrapper');
+        const glassOverlay = document.getElementById('glass-overlay'); 
+        const topBar = document.getElementById('top-bar');
+        const logoContainer = document.getElementById('logo-container');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sideMenu = document.getElementById('side-menu');
+        const overlayPages = document.getElementById('overlay-pages');
+        const pageInfo = document.getElementById('page-info');
+        const pageFilosofia = document.getElementById('page-filosofia');
+        
+        const menuItems = {
+            home: document.getElementById('menu-home'),
+            info: document.getElementById('menu-info'),
+            filosofia: document.getElementById('menu-filosofia')
+        };
+
+        const textQuestion = document.getElementById('text-question');
+        const videoElement = document.getElementById('webcam');
+        const indexDot = document.getElementById('index-dot');
+        const thumbDot = document.getElementById('thumb-dot');
+        const phoneScreenElement = document.getElementById('phone-screen');
+        const appContentElement = document.getElementById('app-content');
+        const phoneContainerElement = document.getElementById('phone-container');
+        const timeElement = document.getElementById('time');
+        const dateElement = document.getElementById('date');
+        const webcamPlaceholder = document.getElementById('webcam-placeholder');
+        const webcamFeed = document.getElementById('webcam-feed');
+        const canvasLayer = document.getElementById('canvas-layer');
+        const finalLogo = document.getElementById('final-logo');
+        
+        const sceneContainer = document.getElementById('scene-container');
+        const btnMain = document.getElementById('btn-main');
+        const btnTeoria = document.getElementById('btn-teoria');
+        const btnPratica = document.getElementById('btn-pratica');
+        const btnEspansioni = document.getElementById('btn-espansioni');
+
+	const praticaGridView = document.getElementById('pratica-grid-view');
+
+
+        const controlsContainer = document.getElementById('controls-container');
+        const btnPinch = document.getElementById('btn-pinch');
+const teoria1 = document.getElementById('teoria-1-attenzione');
+        const teoria2 = document.getElementById('teoria-2-timedesign');
+        const teoria3 = document.getElementById('teoria-3-rallentare');
+        
+        const att1 = document.getElementById('att-1');
+        const att2 = document.getElementById('att-2');
+        const time1 = document.getElementById('time-1');
+        const time2 = document.getElementById('time-2');
+        const rall1 = document.getElementById('rall-1');
+        const rall2 = document.getElementById('rall-2');
+        const rall3 = document.getElementById('rall-3');
+        const rall4 = document.getElementById('rall-4');
+        
+        const closeButton = document.getElementById('close-button');
+	const leftEdgeBack = document.getElementById('left-edge-back');
+        const voltoFullscreen = document.getElementById('volto-fullscreen');
+        const voltoCanvas = document.getElementById('volto-canvas');
+        const voltoCtx = voltoCanvas.getContext('2d');
+        const photovizFullscreen = document.getElementById('photoviz-fullscreen');
+        const photovizCanvas = document.getElementById('photoviz-canvas');
+        const photovizCtx = photovizCanvas.getContext('2d');
+        const btn2004 = document.getElementById('btn-2004');
+        const btn2023 = document.getElementById('btn-2023');
+        const imageWrapper = document.getElementById('photoviz-image-wrapper');
+        
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+	document.addEventListener('contextmenu', event => event.preventDefault());
+        
+        let currentView = 'main-closed';
+        let currentMetodiView = 'closed';
+        let currentModal = null;
+        let animationData = {};
+        let timeDesignAnimationStart = null;
+        let timeDesignPixelationFactor = 100;
+        let currentPhotovizPosition = 'center';
+
+        const animationScreens = {
+    'time1': { screen: document.getElementById('time1-fullscreen'), canvas: document.getElementById('time1-canvas'), ctx: null },
+    'time2': { screen: document.getElementById('time2-fullscreen') }, 
+    'rall1': { 
+        screen: document.getElementById('rall1-fullscreen'), 
+        img: document.getElementById('rall1-animation'), 
+        basePath: './loop/Rilievo/Rilievo', 
+        delay: 1000,
+        totalFrames: 20
+    },
+    'rall2': { 
+        screen: document.getElementById('rall2-fullscreen'), 
+        img: document.getElementById('rall2-animation'), 
+        basePath: './loop/Deforma/Deforma', 
+        delay: 1000,
+        totalFrames: 20
+    },
+    'rall3': { 
+        screen: document.getElementById('rall3-fullscreen'), 
+        img: document.getElementById('rall3-animation'), 
+        basePath: './loop/Lettere/Lettere', 
+        delay: 1000,
+        totalFrames: 20
+    },
+    'rall4': { 
+        screen: document.getElementById('rall4-fullscreen'), 
+        img: document.getElementById('rall4-animation'), 
+        basePath: './loop/Colore/Colore', 
+        delay: 1000,
+        totalFrames: 20
+    }
+};
+
+
+        animationScreens.time1.ctx = animationScreens.time1.canvas.getContext('2d');
+        for (const key in animationScreens) { if (animationScreens[key].img) animationData[key] = { totalFrames: 0, currentFrame: 1, interval: null, preloaded: false }; }
+        const ctx = canvasLayer.getContext('2d');
+        
+        const PINCH_THRESHOLD = 0.035;
+        const COOLDOWN_MS = 500;
+        const PINCH_DRAG_THRESHOLD = 50;
+        const MOUSE_DRAG_THRESHOLD = 30;
+        const MAX_SCROLLS = 6;
+        const LOGO_PIXEL_SIZE = 8;
+        const MIN_BRIGHTNESS = 120;
+        const logoColorMap = {};
+
+        let isUnlocked = false;
+        let degradationLevel = 0;
+        let particles = [];
+        let pixelSize = 1;
+        let isCompressing = false;
+        let scrollOffset = 0;
+        let pinchCooldown = false;
+        let finalStage = false;
+        let isPinchEnabled = false;
+        
+        let logoFormed = false;
+        let logoFormationStarted = false;
+        let logoCompleted = false;
+
+        let isPinchingState = false;
+        let pinchStartY = 0;
+        let isMouseDown = false;
+        let mouseStartY = 0;
+
+        const globalCanvas = document.createElement('canvas');
+        globalCanvas.style.position = 'fixed';
+        globalCanvas.style.top = '0';
+        globalCanvas.style.left = '0';
+        globalCanvas.style.width = '100vw';
+        globalCanvas.style.height = '100vh';
+        globalCanvas.style.pointerEvents = 'none';
+        globalCanvas.style.zIndex = '999';
+        mainWrapper.appendChild(globalCanvas);
+        const globalCtx = globalCanvas.getContext('2d');
+        globalCanvas.width = window.innerWidth;
+        globalCanvas.height = window.innerHeight;
+
+        const Q = [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,1,0,1],[0,1,1,1,0],[0,0,0,0,1]];
+        const U = [[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]];
+        const I = [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[1,1,1,1,1]];
+        const e = [[0,1,1,1,0],[1,0,0,0,1],[1,0,1,1,0],[1,0,0,0,0],[0,1,1,1,1]];
+        const T = [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]];
+        const E = [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,1,1,1,1]];
+        
+        const finalLogoData = [
+            { letter: Q, spaceAfter: 2 }, { letter: U, spaceAfter: 2 },
+            { letter: I, spaceAfter: 2 }, { letter: e, spaceAfter: 1 },
+            { letter: T, spaceAfter: 2 }, { letter: E, spaceAfter: 0 }
+        ];
+
+        function createInitialLogo() {
+            const canvas = document.createElement('canvas');
+            canvas.id = 'logo-canvas-intro';
+            
+            let gridW = 0;
+            finalLogoData.forEach((l, i) => gridW += 5 + (i < finalLogoData.length-1 ? l.spaceAfter : 0));
+            const totW = gridW * LOGO_PIXEL_SIZE;
+            
+            const totH = 6 * LOGO_PIXEL_SIZE;
+            
+            canvas.width = totW; 
+            canvas.height = totH;
+            const lCtx = canvas.getContext('2d');
+            
+            drawStaticLogoToCanvas(lCtx, 0, 0); 
+            
+            logoContainer.appendChild(canvas);
+        }
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                hamburgerBtn.classList.add('open');
+                sideMenu.classList.add('open');
+                glassOverlay.classList.add('active'); 
+                topBar.classList.add('slide-up');
+            } else {
+                hamburgerBtn.classList.remove('open');
+                sideMenu.classList.remove('open');
+                glassOverlay.classList.remove('active'); 
+                if (currentPage === 'home') {
+                    topBar.classList.remove('slide-up');
+                }
+            }
+	if (isMenuOpen) {
+    leftEdgeBack.style.visibility = 'hidden';
+} else {
+    if (currentView !== 'main-closed') leftEdgeBack.style.visibility = 'visible';
+}
+        }
+
+        function handleMenuNavigation(targetPage) {
+            if (currentPage === targetPage) {
+                if (isMenuOpen) toggleMenu();
+                return;
+            }
+            
+            currentPage = targetPage;
+            
+            Object.keys(menuItems).forEach(key => {
+                if (key === targetPage) menuItems[key].classList.add('active-page');
+                else menuItems[key].classList.remove('active-page');
+            });
+
+            if (targetPage === 'home') {
+                overlayPages.classList.remove('visible');
+                pageInfo.classList.remove('active');
+                pageFilosofia.classList.remove('active');
+                if(isMenuOpen) resetToHome(); 
+            } else {
+                overlayPages.classList.add('visible');
+                if (targetPage === 'info') {
+                    pageInfo.classList.add('active');
+                    pageFilosofia.classList.remove('active');
+                } else if (targetPage === 'filosofia') {
+                    pageFilosofia.classList.add('active');
+                    pageInfo.classList.remove('active');
+                }
+            }
+
+            if (isMenuOpen) toggleMenu();
+        }
+
+        hamburgerBtn.addEventListener('click', toggleMenu);
+
+        function nextScene() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            if (currentScene === 0) {
+                logoContainer.classList.add('state-top');
+                topBar.classList.add('active-bar');
+                setTimeout(() => {
+                    textQuestion.classList.add('visible');
+                    isTransitioning = false;
+                    currentScene = 1;
+                }, 1000);
+            } else if (currentScene === 1) {
+                textQuestion.classList.remove('visible');
+                textQuestion.classList.add('exit-up');
+                setTimeout(() => {
+                    phoneContainerElement.classList.add('enter-scene');
+                    controlsContainer.classList.add('visible');
+                    isAppActive = true;
+                    isTransitioning = false;
+                    currentScene = 2;
+                    animationLoop(); 
+                }, 1000);
+            } else {
+                isTransitioning = false;
+            }
+        }
+
+        function resetToHome() {
+            if (isTransitioning || pointOfNoReturn) return;
+            isTransitioning = true;
+            
+            phoneContainerElement.classList.remove('enter-scene');
+            controlsContainer.classList.remove('visible'); 
+            textQuestion.classList.remove('visible');
+            textQuestion.classList.remove('exit-up');
+            
+            setTimeout(() => {
+                logoContainer.classList.remove('state-top');
+                topBar.classList.remove('active-bar');
+            }, 2000);
+
+            isAppActive = false;
+            isUnlocked = false;
+            degradationLevel = 0;
+            pixelSize = 1;
+            scrollOffset = 0;
+            finalStage = false;
+            isCompressing = false;
+            logoFormed = false;
+            logoFormationStarted = false;
+            logoCompleted = false;
+            pointOfNoReturn = false; 
+            menuState = 'closed';
+sceneContainer.classList.remove('level-teoria-open');
+            logoContainer.classList.remove('fade-out');
+            particles = []; 
+
+            phoneScreenElement.classList.remove('unlocked');
+            appContentElement.classList.remove('visible');
+            webcamPlaceholder.style.display = 'flex';
+            webcamFeed.style.display = 'none';
+            phoneContainerElement.style.opacity = '1';
+            phoneContainerElement.style.display = 'block';
+            phoneContainerElement.style.transition = 'all 2.5s cubic-bezier(0.23, 1, 0.32, 1)';
+            
+            canvasLayer.classList.remove('fade-out');
+            canvasLayer.style.opacity = '1';
+
+            finalLogo.style.display = 'none';
+            sceneContainer.classList.remove('visible');
+            sceneContainer.classList.remove('open');
+            sceneContainer.style.opacity = '0';
+            sceneContainer.style.transform = 'translateY(50px)';
+            
+            const bc = document.getElementById('btn-logo-canvas');
+            if(bc) bc.classList.remove('show-canvas');
+
+            setTimeout(() => {
+                currentScene = 0;
+                isTransitioning = false;
+            }, 2000);
+        }
+
+        logoContainer.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            if (pointOfNoReturn && currentScene === 2) {
+                fullResetToExplosion();
+                return;
+            }
+            if (pointOfNoReturn) return; 
+            if (currentScene === 0) nextScene(); 
+            else resetToHome(); 
+        });
+
+        function handleUserInteraction() {
+            if (currentScene < 2 && !isTransitioning) nextScene();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') handleUserInteraction();
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (!logoContainer.contains(e.target) && !hamburgerBtn.contains(e.target) && !sideMenu.contains(e.target) && !isAppActive) {
+                handleUserInteraction();
+            }
+        });
+
+        function updateTime() {
+            const now = new Date();
+            timeElement.textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
+            let dateString = now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+            dateElement.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+        setInterval(updateTime, 10000);
+        updateTime();
+
+        function getBrightness(r, g, b) { return (r * 0.299 + g * 0.587 + b * 0.114); }
+        function ensureMinBrightness(r, g, b, minBrightness) {
+            const current = getBrightness(r, g, b);
+            if (current < minBrightness) {
+                const ratio = minBrightness / current;
+                return {
+                    r: Math.min(255, Math.floor(r * ratio)),
+                    g: Math.min(255, Math.floor(g * ratio)),
+                    b: Math.min(255, Math.floor(b * ratio))
+                };
+            }
+            return { r, g, b };
+        }
+
+        class EscapingParticle {
+            constructor(x, y, color, size, isExplosion = false) {
+                this.x = x; this.y = y; this.color = color;
+                const rgb = color.match(/\d+/g);
+                this.r = rgb ? parseInt(rgb[0]) : 255;
+                this.g = rgb ? parseInt(rgb[1]) : 255;
+                this.b = rgb ? parseInt(rgb[2]) : 255;
+                this.size = size; this.isExplosion = isExplosion;
+                this.opacity = 1.0; this.movingToLogo = false; this.stopped = false; 
+                this.isDead = false;
+                
+                const angle = Math.atan2(y - window.innerHeight/2, x - window.innerWidth/2);
+                const mult = 0.5 + (size / 10);
+                if (isExplosion) {
+                    const speed = (Math.random() * 6 + 4) * mult;
+                    this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                    this.targetDist = (Math.random() * 600 + 300) * mult;
+                } else {
+                    const speed = (Math.random() * 2 + 1) * mult;
+                    this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                    this.targetDist = (Math.random() * Math.max(window.innerWidth, window.innerHeight) + 100) * mult;
+                }
+                this.travel = 0;
+            }
+            moveToLogo(tx, ty) { this.movingToLogo = true; this.targetX = tx; this.targetY = ty; this.stopped = false; }
+            update() {
+                if (this.isDead) return;
+
+                if (this.movingToLogo) {
+                    const dx = this.targetX - this.x; const dy = this.targetY - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 2) { this.x = this.targetX; this.y = this.targetY; this.size = LOGO_PIXEL_SIZE; }
+                    else { this.x += dx * 0.05; this.y += dy * 0.05; this.size += (LOGO_PIXEL_SIZE - this.size) * 0.1; }
+                } else if (!this.stopped) {
+                    this.x += this.vx; this.y += this.vy;
+                    this.travel += Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+                    if (this.travel >= this.targetDist) this.stopped = true;
+                } else { this.x += this.vx * 0.15; this.y += this.vy * 0.15; }
+            }
+            draw(c) { 
+                if (!this.isDead && this.size > 0.5) { 
+                    c.fillStyle = this.color; 
+                    c.fillRect(this.x, this.y, this.size, this.size); 
+                } 
+            }
+        }
+
+        function createEscapingPixels() {
+            const feedRect = document.querySelector('.social-feed').getBoundingClientRect();
+            const phoneRect = phoneContainerElement.getBoundingClientRect();
+            const num = Math.floor(30 + degradationLevel * 15);
+            const vW = videoElement.videoWidth, vH = videoElement.videoHeight;
+            const fW = feedRect.width, fH = feedRect.height;
+            const vRatio = vW / vH, fRatio = fW / fH;
+            let sW = vW, sH = vH, sX = 0, sY = 0;
+            if (fRatio > vRatio) { sH = vW / fRatio; sY = (vH - sH) / 2; }
+            else { sW = vH * fRatio; sX = (vW - sW) / 2; }
+
+            for (let i=0; i<num; i++) {
+                const tc = document.createElement('canvas'); tc.width=1; tc.height=1;
+                const rX = Math.random() * sW + sX; const rY = Math.random() * sH + sY;
+                tc.getContext('2d').drawImage(videoElement, rX, rY, 1, 1, 0, 0, 1, 1);
+                const p = tc.getContext('2d').getImageData(0,0,1,1).data;
+                const pX = phoneRect.left + (1 - ((rX-sX)/sW)) * fW;
+                const pY = phoneRect.top + feedRect.top + ((rY-sY)/sH) * fH;
+                particles.push(new EscapingParticle(pX, pY, `rgb(${p[0]},${p[1]},${p[2]})`, pixelSize));
+            }
+        }
+
+        function drawVideoWithDegradation() {
+            const feedRect = document.querySelector('.social-feed').getBoundingClientRect();
+            canvasLayer.width = feedRect.width; canvasLayer.height = feedRect.height;
+            const vW = videoElement.videoWidth, vH = videoElement.videoHeight;
+            const fW = feedRect.width, fH = feedRect.height;
+            const vRatio = vW / vH, fRatio = fW / fH;
+            let sW = vW, sH = vH, sX = 0, sY = 0;
+            if (fRatio > vRatio) { sH = vW / fRatio; sY = (vH - sH) / 2; }
+            else { sW = vH * fRatio; sX = (vW - sW) / 2; }
+
+            const cols = Math.floor(fW / pixelSize); const rows = Math.floor(fH / pixelSize);
+            const tc = document.createElement('canvas'); tc.width = cols; tc.height = rows;
+            const tCtx = tc.getContext('2d'); tCtx.scale(-1, 1);
+            tCtx.drawImage(videoElement, sX, sY, sW, sH, -cols, 0, cols, rows);
+            const pixels = tCtx.getImageData(0, 0, cols, rows).data;
+            
+            ctx.clearRect(0, 0, canvasLayer.width, canvasLayer.height);
+            ctx.save();
+            for(let y=0; y<rows; y++) {
+                for(let x=0; x<cols; x++) {
+                    const i = (y * cols + x) * 4;
+                    ctx.fillStyle = `rgb(${pixels[i]},${pixels[i+1]},${pixels[i+2]})`;
+                    let yPos = y * pixelSize + scrollOffset;
+                    if(yPos < canvasLayer.height * 2) ctx.fillRect(x*pixelSize, yPos, pixelSize, pixelSize);
+                    if(scrollOffset > 0) {
+                         yPos = y * pixelSize - (canvasLayer.height - scrollOffset);
+                         if(yPos < canvasLayer.height) ctx.fillRect(x*pixelSize, yPos, pixelSize, pixelSize);
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawStaticLogoToCanvas(targetCtx, startX, startY) {
+            let curX = startX;
+            finalLogoData.forEach(item => {
+                item.letter.forEach((row, r) => {
+                    row.forEach((bit, c) => { 
+                        if(bit) {
+                            targetCtx.fillStyle = 'white';
+                            targetCtx.fillRect(curX + c*LOGO_PIXEL_SIZE, startY + r*LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE);
+                        }
+                    });
+                });
+                curX += (5 + item.spaceAfter) * LOGO_PIXEL_SIZE;
+            });
+        }
+
+        function transferLogoToButton() {
+            const btnCanvas = document.createElement('canvas');
+            btnCanvas.id = 'btn-logo-canvas';
+            
+            let gridW = 0;
+            finalLogoData.forEach((l, i) => gridW += 5 + (i < finalLogoData.length-1 ? l.spaceAfter : 0));
+            const totW = gridW * LOGO_PIXEL_SIZE;
+            
+            const totH = 6 * LOGO_PIXEL_SIZE;
+            
+            btnCanvas.width = totW + 20; 
+            btnCanvas.height = totH + 20;
+            
+            const btnCtx = btnCanvas.getContext('2d');
+            
+            const screenStartX = window.innerWidth/2 - totW/2;
+            const screenStartY = window.innerHeight/2 - (6 * LOGO_PIXEL_SIZE)/2;
+            
+            let curX = 10;
+            const startY = 10;
+
+            finalLogoData.forEach(item => {
+                item.letter.forEach((row, r) => {
+                    row.forEach((bit, c) => { 
+                        if(bit) {
+                            const screenX = screenStartX + (curX - 10) + c*LOGO_PIXEL_SIZE;
+                            const screenY = screenStartY + r*LOGO_PIXEL_SIZE;
+                            const key = `${Math.round(screenX)},${Math.round(screenY)}`;
+                            
+                            btnCtx.fillStyle = logoColorMap[key] || 'white';
+                            btnCtx.fillRect(curX + c*LOGO_PIXEL_SIZE, startY + r*LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE);
+                        }
+                    });
+                });
+                curX += (5 + item.spaceAfter) * LOGO_PIXEL_SIZE;
+            });
+            
+            btnMain.innerHTML = '';
+            btnMain.appendChild(btnCanvas);
+            
+            sceneContainer.style.display = 'block';
+            
+            setTimeout(() => {
+                sceneContainer.classList.add('visible');
+            }, 100);
+            
+            setTimeout(() => {
+                btnCanvas.classList.add('show-canvas');
+                particles.forEach(p => {
+                    if (p.movingToLogo) {
+                        p.isDead = true; 
+                    }
+                });
+                particles = particles.filter(p => !p.isDead);
+            }, 2000);
+        }
+
+        function formFinalLogo() {
+            if (logoFormed) return;
+            
+            let gridW = 0;
+            finalLogoData.forEach((l, i) => gridW += 5 + (i < finalLogoData.length-1 ? l.spaceAfter : 0));
+            const totW = gridW * LOGO_PIXEL_SIZE;
+            
+            const startX = window.innerWidth/2 - totW/2;
+            const startY = window.innerHeight/2 - (6 * LOGO_PIXEL_SIZE)/2;
+
+            sceneContainer.style.width = '593px'; 
+            sceneContainer.style.height = '201px';
+            sceneContainer.style.left = `${window.innerWidth/2 - 296}px`;
+            sceneContainer.style.top = `${window.innerHeight/2 - 100}px`;
+            
+            finalLogo.style.display = 'block';
+
+            let curX = startX; const targets = [];
+            finalLogoData.forEach(item => {
+                item.letter.forEach((row, r) => {
+                    row.forEach((bit, c) => { if(bit) targets.push({x: curX + c*LOGO_PIXEL_SIZE, y: startY + r*LOGO_PIXEL_SIZE}); });
+                });
+                curX += (5 + item.spaceAfter) * LOGO_PIXEL_SIZE;
+            });
+
+            const available = particles.filter(p => !p.movingToLogo && getBrightness(p.r,p.g,p.b) >= MIN_BRIGHTNESS);
+            targets.forEach((t, i) => {
+                if(i < available.length) {
+                    const p = available[i];
+                    const adj = ensureMinBrightness(p.r, p.g, p.b, MIN_BRIGHTNESS);
+                    p.color = `rgb(${adj.r},${adj.g},${adj.b})`; p.r = adj.r; p.g = adj.g; p.b = adj.b;
+                    
+                    const key = `${Math.round(t.x)},${Math.round(t.y)}`;
+                    logoColorMap[key] = p.color;
+
+                    setTimeout(() => p.moveToLogo(t.x, t.y), i * 30);
+                }
+            });
+
+            logoFormed = true;
+            
+            setTimeout(() => { 
+                logoCompleted = true; 
+                transferLogoToButton();
+            }, targets.length * 30 + 2500);
+        }
+
+	function setSceneState(state) {
+    if (state !== 'main-closed') {
+        leftEdgeBack.classList.add('is-active');
+    } else {
+        leftEdgeBack.classList.remove('is-active');
+        leftEdgeBack.classList.remove('force-visible');
+    }
+
+    if (logoCompleted) {
+        logoContainer.classList.remove('nav-active');
+        logoContainer.classList.add('fade-out');
+    }
+
+    const isInternalState = state.includes('teoria') || state.includes('attenzione') || state.includes('timedesign') || state.includes('rallentare') || state.includes('pratica');
+
+    if (isInternalState) {
+        sceneContainer.classList.add('quiete-top');
+    } else {
+        sceneContainer.classList.remove('quiete-top');
+    }
+
+    sceneContainer.classList.remove(
+        'open', 
+        'level-teoria', 'level-teoria-open',
+        'level-attenzione', 'level-attenzione-open',
+        'level-timedesign', 'level-timedesign-open',
+        'level-rallentare', 'level-rallentare-open',
+        'level-pratica', 'level-pratica-open'
+    );
+    
+    sceneContainer.classList.add('visible');
+
+    switch (state) {
+        case 'main-open': 
+            sceneContainer.classList.add('open');
+            break;
+        case 'teoria-main': 
+            sceneContainer.classList.add('level-teoria'); 
+            break;
+        case 'teoria-open': 
+            sceneContainer.classList.add('level-teoria-open'); 
+            break;
+        case 'attenzione-main': sceneContainer.classList.add('level-attenzione'); break;
+        case 'attenzione-open': sceneContainer.classList.add('level-attenzione-open'); break;
+        case 'timedesign-main': sceneContainer.classList.add('level-timedesign'); break;
+        case 'timedesign-open': sceneContainer.classList.add('level-timedesign-open'); break;
+        case 'rallentare-main': sceneContainer.classList.add('level-rallentare'); break;
+        case 'rallentare-open': sceneContainer.classList.add('level-rallentare-open'); break;
+        
+        case 'pratica-main': sceneContainer.classList.add('level-pratica'); break;
+        case 'pratica-open': 
+            sceneContainer.classList.add('level-pratica-open'); 
+            praticaGridView.classList.add('active');
+            break;
+    }
+    
+    currentView = state;
+}
+
+        function toggle3DMenu() {
+            if (!logoCompleted || pinchCooldown) return;
+            if (currentView === 'main-closed') setSceneState('main-open');
+            else if (currentView === 'main-open') setSceneState('main-closed');
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function openTeoriaSublevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('teoria-main');
+            setTimeout(() => setSceneState('teoria-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function closeTeoriaLevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('teoria-main');
+            setTimeout(() => {
+                setSceneState('main-open');
+                logoContainer.classList.remove('nav-active');
+                logoContainer.classList.add('fade-out'); 
+            }, 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+function openPraticaLevel() {
+            if (pinchCooldown) return;
+            setSceneState('pratica-main'); 
+            setTimeout(() => setSceneState('pratica-open'), 800);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function closePraticaLevel() {
+            if (pinchCooldown) return;
+            praticaGridView.classList.remove('active');
+            setSceneState('pratica-main');
+            setTimeout(() => {
+                setSceneState('main-open');
+                logoContainer.classList.remove('nav-active');
+                logoContainer.classList.add('fade-out'); 
+            }, 800);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+
+        function openAttenzioneSublevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('attenzione-main');
+            setTimeout(() => setSceneState('attenzione-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+        function closeAttenzioneLevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('attenzione-main');
+            setTimeout(() => setSceneState('teoria-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function openTimeDesignSublevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('timedesign-main');
+            setTimeout(() => setSceneState('timedesign-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+        function closeTimeDesignLevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('timedesign-main');
+            setTimeout(() => setSceneState('teoria-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function openRallentareSublevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('rallentare-main');
+            setTimeout(() => setSceneState('rallentare-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+        function closeRallentareLevel_Sequenced() {
+            if (pinchCooldown) return;
+            setSceneState('rallentare-main');
+            setTimeout(() => setSceneState('teoria-open'), 1000);
+            pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
+        }
+
+        function fullResetToExplosion() {
+            currentView = 'main-closed';
+            sceneContainer.className = ''; 
+            sceneContainer.classList.add('visible');
+            logoContainer.classList.remove('nav-active');
+            logoContainer.classList.add('fade-out');
+
+	    praticaGridView.classList.remove('active');
+            
+            animationScreens.time1.screen.classList.remove('active');
+            animationScreens.time2.screen.classList.remove('active');
+            animationScreens.rall1.screen.classList.remove('active');
+            animationScreens.rall2.screen.classList.remove('active');
+            animationScreens.rall3.screen.classList.remove('active');
+            animationScreens.rall4.screen.classList.remove('active');
+            voltoFullscreen.classList.remove('active');
+            photovizFullscreen.classList.remove('active');
+            metodiContainer.classList.remove('metodi-open');
+            currentMetodiView = 'closed';
+        }
+
+        function handleBackButton() {
+            if(currentModal) { closeModal(); return; }
+            if(currentView === 'photoviz-open') { closePhotoviz(); return; }
+            if(currentView === 'volto-fullscreen') { closeVoltoFullscreen(); return; }
+            if(currentView.includes('fullscreen')) { 
+                const key = currentView.split('-')[0]; 
+                closeAnimationFullscreen(key); 
+                return; 
+            }
+            
+            if(currentView === 'attenzione-open') closeAttenzioneLevel_Sequenced();
+            else if(currentView === 'timedesign-open') closeTimeDesignLevel_Sequenced();
+            else if(currentView === 'rallentare-open') closeRallentareLevel_Sequenced();
+            else if(currentView === 'teoria-open') closeTeoriaLevel_Sequenced();
+            else if(currentView === 'pratica-open') closePraticaLevel();
+            else if(currentView === 'main-open') toggle3DMenu();
+        }
+
+
+        function openAnimationFullscreen(key) {
+            const data = animationScreens[key];
+            if(!data) return;
+            data.screen.classList.add('active');
+            currentView = `${key}-fullscreen`;
+            if(key.startsWith('rall')) startAnimationLoop(key);
+            if(key === 'time1') { timeDesignAnimationStart = null; animationScreens.time1.canvas.width = videoElement.videoWidth; animationScreens.time1.canvas.height = videoElement.videoHeight; }
+        }
+
+        function closeAnimationFullscreen(key) {
+    if(animationScreens[key]) {
+        animationScreens[key].screen.classList.remove('active');
+    }
+
+    if(key.startsWith('rall')) {
+        const data = animationData[key];
+        if(data && data.interval) {
+            clearInterval(data.interval);
+            data.interval = null;
+        }
+    }
+
+    if(key === 'time2') { 
+        currentMetodiView = 'closed'; 
+        if(document.getElementById('metodi-container')) {
+            document.getElementById('metodi-container').classList.remove('metodi-open');
+        }
+    }
+
+    const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
+    allCards.forEach(c => {
+        c.style.transform = '';
+        c.style.opacity = '';
+        c.style.transition = '';
+        c.style.pointerEvents = '';
+    });
+    
+    lastLiftedCard = null;
+
+    if(key.startsWith('time')) {
+        setSceneState('timedesign-open');
+    } else if(key.startsWith('rall')) {
+        setSceneState('rallentare-open');
+    } else if (key.startsWith('att') || key === 'volto' || key === 'photoviz') {
+        setSceneState('attenzione-open');
+    }
+}
+
+        function startAnimationLoop(key) {
+    const data = animationData[key]; 
+    const screen = animationScreens[key];
+    if(!data || !screen || !screen.img) return;
+    
+    if(data.interval) clearInterval(data.interval);
+    
+    screen.img.onerror = function() {
+        this.style.display = 'none'; 
+        data.currentFrame = 1; 
+        this.src = `${screen.basePath}1.png`;
+    };
+
+    screen.img.onload = function() {
+        this.style.display = 'block';
+    };
+
+    data.currentFrame = 1;
+    screen.img.src = `${screen.basePath}1.png`;
+    
+    data.interval = setInterval(() => {
+        data.currentFrame++;
+        screen.img.src = `${screen.basePath}${data.currentFrame}.png`;
+    }, screen.delay);
+}
+
+
+function openVoltoFullscreen() {
+    voltoFullscreen.classList.add('active'); 
+    currentView = 'volto-fullscreen';
+    voltoCanvas.width = 720; 
+    voltoCanvas.height = 1280; 
+    leftEdgeBack.classList.add('force-visible'); 
+}
+function openPhotoviz() { 
+    photovizFullscreen.classList.add('active'); 
+    currentView = 'photoviz-open'; 
+    photovizCanvas.width = 720; 
+    photovizCanvas.height = 1280; 
+    leftEdgeBack.classList.add('force-visible');
+}
+
+function openVoltoFullscreen() {
+    voltoFullscreen.classList.add('active'); 
+    currentView = 'volto-fullscreen';
+    voltoCanvas.width = videoElement.videoWidth; 
+    voltoCanvas.height = videoElement.videoHeight;
+    leftEdgeBack.classList.add('force-visible');
+}
+
+function openPhotoviz() { 
+    photovizFullscreen.classList.add('active'); 
+    currentView = 'photoviz-open'; 
+    photovizCanvas.width = 720; 
+    photovizCanvas.height = 1280; 
+    leftEdgeBack.classList.add('force-visible');
+}
+
+function openAnimationFullscreen(key) {
+    const data = animationScreens[key];
+    if(!data) return;
+    data.screen.classList.add('active');
+    currentView = `${key}-fullscreen`;
+    if(key.startsWith('rall')) startAnimationLoop(key);
+    if(key === 'time1') { 
+        timeDesignAnimationStart = null; 
+        animationScreens.time1.canvas.width = videoElement.videoWidth; 
+        animationScreens.time1.canvas.height = videoElement.videoHeight; 
+    }
+    leftEdgeBack.classList.add('force-visible'); 
+}
+        
+
+function closeVoltoFullscreen() { 
+    voltoFullscreen.classList.remove('active'); 
+    closeAnimationFullscreen('volto');
+}
+
+        function drawVoltoCanvas() {
+    if (!voltoCtx || !videoElement.videoWidth) return;
+
+    voltoCtx.imageSmoothingEnabled = false;
+    voltoCtx.webkitImageSmoothingEnabled = false;
+    voltoCtx.mozImageSmoothingEnabled = false;
+    voltoCtx.msImageSmoothingEnabled = false;
+
+    const w = voltoCanvas.width; 
+    const h = voltoCanvas.height;
+
+    voltoCtx.save();
+    voltoCtx.translate(w, 0);
+    voltoCtx.scale(-1, 1); 
+
+    const vW = videoElement.videoWidth; 
+    const vH = videoElement.videoHeight;
+    const scale = Math.max(w / vW, h / vH);
+    const x = (w - vW * scale) / 2; 
+    const y = (h - vH * scale) / 2;
+
+    voltoCtx.drawImage(videoElement, x, y, vW * scale, vH * scale);
+    voltoCtx.restore();
+
+    applyPixelation(voltoCtx, 0, 0, w, h, 25);
+}
+
+function applyPixelation(ctx, x, y, w, h, factor) {
+    if (factor <= 1) return;
+    
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+    
+    const tw = Math.max(1, Math.floor(w / factor)); 
+    const th = Math.max(1, Math.floor(h / factor));
+    
+    ctx.drawImage(ctx.canvas, x, y, w, h, 0, 0, tw, th);
+    ctx.drawImage(ctx.canvas, 0, 0, tw, th, x, y, w, h);
+}
+
+       function openVoltoFullscreen() {
+    voltoFullscreen.classList.add('active'); 
+    currentView = 'volto-fullscreen';
+    voltoCanvas.width = 720; 
+    voltoCanvas.height = 1280; 
+    leftEdgeBack.classList.add('force-visible'); 
+}
+
+        function drawTimeDesignCanvas() {
+    const ctx = animationScreens.time1.ctx; 
+    const w = animationScreens.time1.canvas.width; 
+    const h = animationScreens.time1.canvas.height;
+    const now = performance.now();
+    
+    if(!timeDesignAnimationStart) timeDesignAnimationStart = now;
+    
+    const cycleMS = 10000;
+    const elapsed = (now - timeDesignAnimationStart) % cycleMS;
+    const prog = elapsed / cycleMS;
+    
+    let factor;
+    if (prog < 0.5) {
+        factor = 100 - (prog * 2 * 99);
+    } else {
+        factor = 1 + ((prog - 0.5) * 2 * 99);
+    }
+
+    ctx.save(); 
+    ctx.scale(-1,1); 
+    ctx.translate(-w,0); 
+    ctx.drawImage(videoElement,0,0,w,h); 
+    ctx.restore();
+    
+    applyPixelation(ctx, 0, 0, w, h, Math.max(1, factor));
+}
+
+        function openPhotoviz() { 
+    photovizFullscreen.classList.add('active'); 
+    currentView = 'photoviz-open'; 
+    photovizCanvas.width = 720; 
+    photovizCanvas.height = 1280; 
+    leftEdgeBack.classList.add('force-visible');
+}
+        function closePhotoviz() { 
+    photovizFullscreen.classList.remove('active'); 
+    imageWrapper.classList.remove('shift-left','shift-right'); 
+    btn2004.classList.remove('active-state'); 
+    btn2023.classList.remove('active-state');
+    closeAnimationFullscreen('photoviz');
+}
+
+        function drawPhotoviz() {
+             const ctx = photovizCtx; const w = photovizCanvas.width; const h = photovizCanvas.height;
+             ctx.save(); ctx.translate(w,0); ctx.scale(-1,1); 
+             const vW = videoElement.videoWidth; const vH = videoElement.videoHeight;
+             const scale = Math.max(w/vW, h/vH);
+             const x = (w - vW*scale)/2; const y = (h - vH*scale)/2;
+             ctx.drawImage(videoElement, x,y, vW*scale, vH*scale);
+             ctx.restore();
+             let f = 1; if(currentPhotovizPosition === 'left') f = 40; else if(currentPhotovizPosition === 'right') f = 120;
+             if(f>1) applyPixelation(ctx, 0,0,w,h,f);
+        }
+        function handlePhotovizAction(y) {
+            btn2004.classList.remove('active-state'); btn2023.classList.remove('active-state');
+            imageWrapper.classList.remove('shift-left','shift-right');
+            if(y==='2004') { currentPhotovizPosition='left'; btn2004.classList.add('active-state'); imageWrapper.classList.add('shift-left'); }
+            else if(y==='2023') { currentPhotovizPosition='right'; btn2023.classList.add('active-state'); imageWrapper.classList.add('shift-right'); }
+            else currentPhotovizPosition='center';
+        }
+
+        function closeModal() { modalOverlay.classList.remove('visible'); currentModal=null; }
+
+
+btnTeoria.addEventListener('click', () => { 
+    if (currentView === 'main-open') {
+        openTeoriaSublevel_Sequenced(); 
+    } 
+    else if (currentView === 'teoria-open') {
+        closeTeoriaLevel_Sequenced(); 
+    }
+    else if (currentView === 'attenzione-open' || currentView === 'timedesign-open' || currentView === 'rallentare-open') {
+        handleBackButton(); 
+    }
+});
+
+
+att1.addEventListener('click', () => { 
+    if(currentView === 'attenzione-open') liftCardAndOpen('att-1', openVoltoFullscreen); 
+});
+att2.addEventListener('click', () => { 
+    if(currentView === 'attenzione-open') liftCardAndOpen('att-2', openPhotoviz); 
+});
+
+time1.addEventListener('click', () => { 
+    if(currentView === 'timedesign-open') liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); 
+});
+time2.addEventListener('click', () => { 
+    if(currentView === 'timedesign-open') liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); 
+});
+
+rall1.addEventListener('click', () => { 
+    if(currentView === 'rallentare-open') liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); 
+});
+rall2.addEventListener('click', () => { 
+    if(currentView === 'rallentare-open') liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); 
+});
+rall3.addEventListener('click', () => { 
+    if(currentView === 'rallentare-open') liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); 
+});
+rall4.addEventListener('click', () => { 
+    if(currentView === 'rallentare-open') liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); 
+});
+
+btnMain.addEventListener('click', () => {
+    if (currentView === 'main-closed' || currentView === 'main-open') {
+        toggle3DMenu();
+    } 
+    else if (sceneContainer.classList.contains('quiete-top')) {
+        if(currentView.includes('fullscreen')) {
+             const key = currentView.split('-')[0];
+             if(animationScreens[key]) closeAnimationFullscreen(key);
+        }
+        if(currentView === 'volto-fullscreen') closeVoltoFullscreen();
+        if(currentView === 'photoviz-open') closePhotoviz();
+        
+        setSceneState('main-open');
+    }
+});     
+        teoria1.addEventListener('click', () => { if(currentView==='teoria-open') openAttenzioneSublevel_Sequenced(); else if(currentView==='attenzione-open') closeAttenzioneLevel_Sequenced(); });
+        teoria2.addEventListener('click', () => { if(currentView==='teoria-open') openTimeDesignSublevel_Sequenced(); else if(currentView==='timedesign-open') closeTimeDesignLevel_Sequenced(); });
+        teoria3.addEventListener('click', () => { if(currentView==='teoria-open') openRallentareSublevel_Sequenced(); else if(currentView==='rallentare-open') closeRallentareLevel_Sequenced(); });
+       
+        const addHover = (btn) => btn.classList.add('hover');
+        const removeHover = (btn) => btn.classList.remove('hover');
+
+        btnMain.addEventListener('mouseenter', () => { if(currentView === 'main-closed' || currentView === 'main-open') addHover(btnMain); });
+        btnMain.addEventListener('mouseleave', () => removeHover(btnMain));
+        
+        btnTeoria.addEventListener('mouseenter', () => { if(currentView === 'main-open' || currentView === 'teoria-open') addHover(btnTeoria); });
+        btnTeoria.addEventListener('mouseleave', () => removeHover(btnTeoria));
+        
+        btnPratica.addEventListener('mouseenter', () => { if(currentView === 'main-open') addHover(btnPratica); });
+        btnPratica.addEventListener('mouseleave', () => removeHover(btnPratica));
+
+        btnEspansioni.addEventListener('mouseenter', () => { if(currentView === 'main-open') addHover(btnEspansioni); });
+        btnEspansioni.addEventListener('mouseleave', () => removeHover(btnEspansioni));
+        
+        teoria1.addEventListener('mouseenter', () => { if(currentView === 'teoria-open' || currentView === 'attenzione-open') addHover(teoria1); });
+        teoria1.addEventListener('mouseleave', () => removeHover(teoria1));
+        
+        teoria2.addEventListener('mouseenter', () => { if(currentView === 'teoria-open' || currentView === 'timedesign-open') addHover(teoria2); });
+        teoria2.addEventListener('mouseleave', () => removeHover(teoria2));
+        
+        teoria3.addEventListener('mouseenter', () => { if(currentView === 'teoria-open' || currentView === 'rallentare-open') addHover(teoria3); });
+        teoria3.addEventListener('mouseleave', () => removeHover(teoria3));
+
+        att1.addEventListener('mouseenter', () => { if(currentView === 'attenzione-open') addHover(att1); });
+        att1.addEventListener('mouseleave', () => removeHover(att1));
+        att2.addEventListener('mouseenter', () => { if(currentView === 'attenzione-open') addHover(att2); });
+        att2.addEventListener('mouseleave', () => removeHover(att2));
+
+        time1.addEventListener('mouseenter', () => { if(currentView === 'timedesign-open') addHover(time1); });
+        time1.addEventListener('mouseleave', () => removeHover(time1));
+        time2.addEventListener('mouseenter', () => { if(currentView === 'timedesign-open') addHover(time2); });
+        time2.addEventListener('mouseleave', () => removeHover(time2));
+
+        rall1.addEventListener('mouseenter', () => { if(currentView === 'rallentare-open') addHover(rall1); });
+        rall1.addEventListener('mouseleave', () => removeHover(rall1));
+        rall2.addEventListener('mouseenter', () => { if(currentView === 'rallentare-open') addHover(rall2); });
+        rall2.addEventListener('mouseleave', () => removeHover(rall2));
+        rall3.addEventListener('mouseenter', () => { if(currentView === 'rallentare-open') addHover(rall3); });
+        rall3.addEventListener('mouseleave', () => removeHover(rall3));
+        rall4.addEventListener('mouseenter', () => { if(currentView === 'rallentare-open') addHover(rall4); });
+        rall4.addEventListener('mouseleave', () => removeHover(rall4));
+        
+        btn2004.addEventListener('click', () => handlePhotovizAction('2004'));
+        btn2023.addEventListener('click', () => handlePhotovizAction('2023'));
+        imageWrapper.addEventListener('click', () => handlePhotovizAction('center'));
+
+	btnPinch.addEventListener('click', () => {
+        isPinchEnabled = !isPinchEnabled;
+        if(isPinchEnabled) {
+            btnPinch.classList.add('active');
+            indexDot.style.display = 'block';
+            thumbDot.style.display = 'block';
+        } else {
+            btnPinch.classList.remove('active');
+            indexDot.style.display = 'none';
+            thumbDot.style.display = 'none';
+        }
+    }); 
+
+    btnPratica.addEventListener('click', () => { 
+        if (currentView === 'main-open') {
+            openPraticaLevel(); 
+        } 
+        else if (currentView === 'pratica-open') {
+            closePraticaLevel();
+        }
+    });
+        
+	leftEdgeBack.addEventListener('click', handleBackButton);
+        
+        modalOverlay.addEventListener('click', closeModal);
+        function animationLoop() {
+            if (isAppActive || particles.length > 0) {
+                globalCtx.clearRect(0, 0, globalCanvas.width, globalCanvas.height);
+                particles.forEach(p => { if(!p.isDead) { p.update(); p.draw(globalCtx); } });
+                
+                if (scrollOffset > 0 && !finalStage) { scrollOffset *= 0.8; if (scrollOffset < 0.5) scrollOffset = 0; }
+                if (isUnlocked && !finalStage) drawVideoWithDegradation();
+                
+                if(currentView === 'volto-fullscreen') drawVoltoCanvas();
+                else if(currentView === 'photoviz-open') drawPhotoviz();
+                else if(currentView === 'time1-fullscreen') drawTimeDesignCanvas();
+
+                requestAnimationFrame(animationLoop);
+            }
+        }
+
+        function handleDragAction() {
+            if (pinchCooldown) return;
+            if (!isUnlocked) {
+                isUnlocked = true;
+                phoneScreenElement.classList.add('unlocked');
+                appContentElement.classList.add('visible');
+                setTimeout(() => {
+                    webcamPlaceholder.style.display = 'none';
+                    webcamFeed.style.display = 'block';
+                }, 800);
+            } else {
+                if (degradationLevel >= MAX_SCROLLS) {
+                    if (!isCompressing) {
+                        isCompressing = true;
+                        finalStage = true;
+                        pointOfNoReturn = true; 
+                        
+                        canvasLayer.classList.add('fade-out');
+                        
+                        logoContainer.classList.add('fade-out'); 
+                        phoneContainerElement.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            phoneContainerElement.style.display = 'none';
+                            formFinalLogo();
+                        }, 5000);
+                        
+                        const fR = document.querySelector('.social-feed').getBoundingClientRect();
+                        const pR = phoneContainerElement.getBoundingClientRect();
+                        const cols = Math.floor(fR.width/4); const rows = Math.floor(fR.height/4);
+                        for(let y=0; y<rows; y++) {
+                            for(let x=0; x<cols; x++) {
+                                const pX = pR.left + (1 - (x/cols)) * pR.width;
+                                const pY = pR.top + fR.top + (y/rows) * fR.height;
+                                particles.push(new EscapingParticle(pX, pY, 'rgb(200,200,200)', 6, true));
+                            }
+                        }
+                    }
+                    return;
+                }
+                if (scrollOffset <= 0) {
+                    degradationLevel++;
+                    pixelSize = Math.floor(1 + (degradationLevel * 1.5));
+                    scrollOffset = document.querySelector('.social-feed').getBoundingClientRect().height;
+                    createEscapingPixels();
+                }
+            }
+            pinchCooldown = true;
+            setTimeout(() => pinchCooldown = false, COOLDOWN_MS);
+        }
+
+        function mapToScreen(nx, ny) { return { x: (1-nx)*window.innerWidth, y: ny*window.innerHeight }; }
+        function dist3D(p1, p2) { return Math.sqrt(Math.pow(p1.x-p2.x,2) + Math.pow(p1.y-p2.y,2) + Math.pow(p1.z-p2.z,2)); }
+        
+        function isPointOverButton(x, y, button) {
+            if (!button) return false;
+            const rect = button.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0 || window.getComputedStyle(button).opacity == 0) return false; 
+            return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+        
+      
+
+ hands.onResults((res) => {
+    if (!isAppActive || !isPinchEnabled) {
+        indexDot.style.display = 'none'; thumbDot.style.display = 'none'; return;
+    }
+    
+    if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
+        indexDot.style.display = 'block'; thumbDot.style.display = 'block';
+        const lm = res.multiHandLandmarks[0];
+        const iPos = mapToScreen(lm[8].x, lm[8].y);
+        const tPos = mapToScreen(lm[4].x, lm[4].y);
+        
+        indexDot.style.left = iPos.x+'px'; indexDot.style.top = iPos.y+'px';
+        thumbDot.style.left = tPos.x+'px'; thumbDot.style.top = tPos.y+'px';
+        
+        [btnMain, btnTeoria, btnPratica, btnEspansioni, teoria1, teoria2, teoria3, att1, att2, time1, time2, rall1, rall2, rall3, rall4, btn2004, btn2023, imageWrapper].forEach(b => {
+     if(b) b.classList.remove('hover');
+});
+
+        const isPinch = dist3D(lm[8], lm[4]) < PINCH_THRESHOLD;
+        
+        if(isPinch) { 
+            indexDot.classList.add('pinching'); thumbDot.classList.add('pinching'); 
+            
+            const checkInteract = (el) => {
+                if(!el) return false;
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 && r.height === 0) return false;
+                return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
+            };
+
+            const isOverLeft = iPos.x <= 80 && (leftEdgeBack.classList.contains('is-active') || leftEdgeBack.classList.contains('force-visible'));
+
+            if(!pinchCooldown) {
+
+                if (isOverLeft) {
+                    handleBackButton();
+                    pinchCooldown = true; setTimeout(()=>pinchCooldown=false,1000); 
+                    return;
+                }
+
+
+                if(checkInteract(btnPinch)) { btnPinch.click(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
+                if(checkInteract(hamburgerBtn)) { toggleMenu(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
+                
+
+                if (logoCompleted) {
+                    if (currentView === 'main-closed') {
+                        if (checkInteract(btnMain)) toggle3DMenu();
+                    } 
+                    else if (currentView === 'main-open') {
+                        if (checkInteract(btnMain)) toggle3DMenu();
+                        else if (checkInteract(btnTeoria)) openTeoriaSublevel_Sequenced();
+                        else if (checkInteract(btnPratica)) openPraticaLevel();
+                    }
+                    else if (currentView === 'teoria-open') {
+                        if (checkInteract(teoria1)) openAttenzioneSublevel_Sequenced();
+                        else if (checkInteract(teoria2)) openTimeDesignSublevel_Sequenced();
+                        else if (checkInteract(teoria3)) openRallentareSublevel_Sequenced();
+                    }
+                    else if (currentView === 'pratica-open') {
+                    }
+                    else if (currentView === 'attenzione-open') {
+                        if (checkInteract(att1)) { liftCardAndOpen('att-1', openVoltoFullscreen); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                        else if (checkInteract(att2)) { liftCardAndOpen('att-2', openPhotoviz); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                    }
+                    else if (currentView === 'timedesign-open') {
+                        if (checkInteract(time1)) { liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                        else if (checkInteract(time2)) { liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                    }
+                    else if (currentView === 'rallentare-open') {
+                        if (checkInteract(rall1)) { liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                        else if (checkInteract(rall2)) { liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                        else if (checkInteract(rall3)) { liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                        else if (checkInteract(rall4)) { liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                    }
+                }
+
+                if (!logoCompleted && !isMenuOpen) {
+                    if (!isPinchingState) { 
+                        isPinchingState = true; 
+                        pinchStartY = iPos.y; 
+                    } else if ((pinchStartY - iPos.y) > PINCH_DRAG_THRESHOLD) {
+                        handleDragAction(); 
+                        isPinchingState = false;
+                        pinchStartY = iPos.y; 
+                    }
+                }
+            }
+        } else {
+            indexDot.classList.remove('pinching'); thumbDot.classList.remove('pinching');
+            isPinchingState = false;
+
+            if(logoCompleted && sceneContainer.classList.contains('visible')) {
+                 const checkHover = (el) => {
+                    if(!el) return false;
+                    const r = el.getBoundingClientRect();
+                    return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
+                };
+
+                if(currentView==='main-open') {
+                     if(checkHover(btnMain)) btnMain.classList.add('hover');
+                     if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
+                     if(checkHover(btnPratica)) btnPratica.classList.add('hover');
+                     if(checkHover(btnEspansioni)) btnEspansioni.classList.add('hover');
+                }
+                if(currentView==='teoria-open') {
+                     if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
+                     if(checkHover(teoria1)) teoria1.classList.add('hover');
+                     if(checkHover(teoria2)) teoria2.classList.add('hover');
+                     if(checkHover(teoria3)) teoria3.classList.add('hover');
+                }
+                
+            }
+        }
+    } else { 
+        indexDot.style.display='none'; thumbDot.style.display='none'; 
+    }
+});
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => { await hands.send({image: videoElement}); },
+            width: 1280, height: 720
+        });
+        camera.start();
+
+        phoneContainerElement.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (isAppActive && !isMenuOpen && !logoCompleted) { isMouseDown = true; mouseStartY = e.clientY; }
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (isAppActive && isMouseDown && !isMenuOpen && !logoCompleted && (mouseStartY - e.clientY) > MOUSE_DRAG_THRESHOLD) {
+                handleDragAction(); isMouseDown = false;
+            }
+        });
+        document.addEventListener('mouseup', () => isMouseDown = false);
+        phoneContainerElement.addEventListener('touchstart', (e) => {
+             if (isAppActive && !isMenuOpen && !logoCompleted) { mouseStartY = e.touches[0].clientY; }
+        }, {passive: false});
+        phoneContainerElement.addEventListener('touchmove', (e) => {
+             if (isAppActive && !isMenuOpen && !logoCompleted && (mouseStartY - e.touches[0].clientY) > MOUSE_DRAG_THRESHOLD) {
+                e.preventDefault(); 
+                handleDragAction(); 
+             }
+        }, {passive: false});
+
+        window.addEventListener('resize', () => { globalCanvas.width = window.innerWidth; globalCanvas.height = window.innerHeight; });
+
+
+function checkDirectNavigation() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+
+    if (mode === 'pratica') {
+
+        currentScene = 2;
+        logoCompleted = true;
+        pointOfNoReturn = true;
+        isAppActive = true;
+
+
+        const logoContainer = document.getElementById('logo-container');
+        const phoneContainer = document.getElementById('phone-container');
+        const textQuestion = document.getElementById('text-question');
+        const topBar = document.getElementById('top-bar');
+
+        if(logoContainer) logoContainer.style.display = 'none';
+        if(phoneContainer) phoneContainer.style.display = 'none';
+        if(textQuestion) textQuestion.style.display = 'none';
+        if(topBar) topBar.style.display = 'none';
+
+        const controlsContainer = document.getElementById('controls-container');
+        if(controlsContainer) controlsContainer.classList.add('visible');
+
+        const sceneContainer = document.getElementById('scene-container');
+        if(sceneContainer) {
+            sceneContainer.style.display = 'block';
+            sceneContainer.style.opacity = '1';
+            sceneContainer.style.transform = 'translateY(0)';
+            sceneContainer.classList.add('visible');
+            
+            setSceneState('pratica-open');
+        }
+
+        const btnMain = document.getElementById('btn-main');
+        if(btnMain) {
+            btnMain.innerHTML = '<img src="QUIeTE.png" style="width: 310px; height: auto; image-rendering: pixelated; pointer-events: none;" alt="QUIeTE">';
+        }
+        
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+checkDirectNavigation();
+
+    </script>
+</body>
+</html>
