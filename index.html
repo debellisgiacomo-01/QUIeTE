@@ -953,6 +953,29 @@
     display: none !important;
 }
 
+#hint-wrapper {
+            position: absolute;
+            top: 85%; 
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            pointer-events: none;
+            z-index: 5000;
+            text-align: center;
+        }
+
+        .hint-text {
+            font-family: var(--font-pixel);
+            font-size: 16px;
+            color: var(--text-secondary);
+            animation: blinker 1.5s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+		
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -1193,6 +1216,9 @@
             </div>
         </div>
 
+        <div id="hint-wrapper">
+            <span class="hint-text">continua a scorrere</span>
+        </div>
         <div id="final-logo"></div>
         
         <div id="scene-container">
@@ -2483,6 +2509,14 @@ btnMain.addEventListener('click', () => {
                 setTimeout(() => {
                     webcamPlaceholder.style.display = 'none';
                     webcamFeed.style.display = 'block';
+                    
+
+                    setTimeout(() => {
+                        const hint = document.getElementById('hint-wrapper');
+       
+                        if (hint && degradationLevel < 3) hint.style.opacity = '1';
+                    }, 1000);
+                    
                 }, 800);
             } else {
                 if (degradationLevel >= MAX_SCROLLS) {
@@ -2519,6 +2553,11 @@ btnMain.addEventListener('click', () => {
                     pixelSize = Math.floor(1 + (degradationLevel * 1.5));
                     scrollOffset = document.querySelector('.social-feed').getBoundingClientRect().height;
                     createEscapingPixels();
+                    
+                    if (degradationLevel >= 3) {
+                        const hint = document.getElementById('hint-wrapper');
+                        if (hint) hint.style.opacity = '0';
+                    }
                 }
             }
             pinchCooldown = true;
