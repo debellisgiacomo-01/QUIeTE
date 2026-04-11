@@ -955,14 +955,15 @@
 
 #hint-wrapper {
             position: absolute;
-            top: 75%; 
-            left: 50%;
+            bottom: -40px; 
+	        left: 50%;
             transform: translateX(-50%);
             opacity: 0;
             transition: opacity 1.5s ease;
             pointer-events: none;
             z-index: 5000;
             text-align: center;
+            width: 100%; 
         }
 
         .hint-text {
@@ -1210,16 +1211,16 @@
                         <canvas id="canvas-layer"></canvas>
                     </div>
                 </div>
-                <div class="home-bar">
+               <div class="home-bar">
                     <div class="bar"></div>
                 </div>
             </div>
-        </div>
+            
+            <div id="hint-wrapper">
+                <span class="hint-text">continua a scorrere</span>
+            </div>
 
-        <div id="hint-wrapper">
-            <span class="hint-text">continua a scorrere</span>
-        </div>
-        <div id="final-logo"></div>
+        </div> <div id="final-logo"></div>
         
         <div id="scene-container">
             <div class="glass-card" id="btn-main"></div> 
