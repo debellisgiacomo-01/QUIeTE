@@ -2500,6 +2500,10 @@ btnMain.addEventListener('click', () => {
             }
         }
 
+        // AGGIUNTA: Variabili per gestire la scritta in modo indipendente
+        let hintScrollCount = 0;
+        let hintRemoved = false;
+
         function handleDragAction() {
             if (pinchCooldown) return;
             if (!isUnlocked) {
@@ -2510,11 +2514,11 @@ btnMain.addEventListener('click', () => {
                     webcamPlaceholder.style.display = 'none';
                     webcamFeed.style.display = 'block';
                     
-
+             
                     setTimeout(() => {
                         const hint = document.getElementById('hint-wrapper');
-       
-                        if (hint && degradationLevel < 3) hint.style.opacity = '1';
+           
+                        if (hint && !hintRemoved) hint.style.opacity = '1';
                     }, 1000);
                     
                 }, 800);
@@ -2548,20 +2552,28 @@ btnMain.addEventListener('click', () => {
                     }
                     return;
                 }
+           
+                if (!hintRemoved) {
+                    const hint = document.getElementById('hint-wrapper');
+                    if (hint && hint.style.opacity === '1') {
+                        hintScrollCount++;
+                        if (hintScrollCount >= 3) {
+                            hint.style.opacity = '0';
+                            hintRemoved = true; 
+                        }
+                    }
+                }
+
                 if (scrollOffset <= 0) {
                     degradationLevel++;
                     pixelSize = Math.floor(1 + (degradationLevel * 1.5));
                     scrollOffset = document.querySelector('.social-feed').getBoundingClientRect().height;
                     createEscapingPixels();
-                    
-                    if (degradationLevel >= 3) {
-                        const hint = document.getElementById('hint-wrapper');
-                        if (hint) hint.style.opacity = '0';
-                    }
                 }
             }
             pinchCooldown = true;
-            setTimeout(() => pinchCooldown = false, COOLDOWN_MS);
+            // Aumentiamo leggermente il cooldown per evitare che un singolo gesto conti come molti scroll per la scritta
+            setTimeout(() => pinchCooldown = false, COOLDOWN_MS); 
         }
 
         function mapToScreen(nx, ny) { return { x: (1-nx)*window.innerWidth, y: ny*window.innerHeight }; }
