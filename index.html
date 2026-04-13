@@ -981,6 +981,25 @@
         @keyframes blinker {
             50% { opacity: 0; }
         }
+
+        #scene-container.level-pratica.quiete-top #btn-main,
+        #scene-container.level-pratica-open.quiete-top #btn-main,
+        #scene-container.level-pratica #btn-pratica,
+        #scene-container.level-pratica-open #btn-pratica,
+        #scene-container.level-pratica #btn-teoria,
+        #scene-container.level-pratica-open #btn-teoria,
+        #scene-container.level-pratica #btn-espansioni,
+        #scene-container.level-pratica-open #btn-espansioni {
+            transform: translateY(150vh) rotateX(25deg) !important;
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 rgba(0,0,0,0) !important;
+            backdrop-filter: blur(0px) !important;
+            -webkit-backdrop-filter: blur(0px) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: all 1s cubic-bezier(0.23, 1, 0.32, 1) !important;
+        }
 		
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
