@@ -201,26 +201,23 @@
         #final-logo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 3000; display: none; pointer-events: none; }
 
         #scene-container {
-    position: fixed;
-    width: 593px;
-    height: 201px;
-    top: calc(50% - 100px);
-    left: calc(50% - 296px);
-    perspective: 1500px;
-    
-    transition: opacity 2.0s ease, transform 2.0s ease;
-    transform: translateY(50px);
-    
-    z-index: 6000; 
-    opacity: 0;
-    pointer-events: none;
-    display: none; 
-}
-        
+            position: fixed;
+            width: 593px;
+            height: 201px;
+            top: calc(50% - 100px);
+            left: calc(50% - 296px);
+            perspective: 1500px;
+
+            transition: opacity 2.0s ease; 
+            
+            z-index: 6000; 
+            opacity: 0;
+            pointer-events: none;
+            display: none; 
+        }
         #scene-container.visible {
             display: block;
             opacity: 1;
-            transform: translateY(0);
             pointer-events: auto;
         }
         
@@ -1881,14 +1878,9 @@ sceneContainer.classList.remove('level-teoria-open');
             
             setTimeout(() => {
                 btnCanvas.classList.add('show-canvas');
-                particles.forEach(p => {
-                    if (p.movingToLogo) {
-                        p.isDead = true; 
-                    }
-                });
-                particles = particles.filter(p => !p.isDead);
+                particles.forEach(p => p.isDead = true);
+                particles = []; 
             }, 2000);
-        }
 
         function formFinalLogo() {
             if (logoFormed) return;
