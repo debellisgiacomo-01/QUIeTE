@@ -27,19 +27,19 @@
         }
 
         body {
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 40%),
-        var(--bg-dark);
-    color: var(--text-primary);
-    font-family: var(--font-pixel);
-    margin: 0;
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
-    user-select: none;
-    -webkit-user-select: none;
-}
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 157, 0.1) 0%, transparent 40%),
+                var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-pixel);
+            margin: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
         #glass-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 8000; 
@@ -201,26 +201,24 @@
         #final-logo { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 3000; display: none; pointer-events: none; }
 
         #scene-container {
-    position: fixed;
-    width: 593px;
-    height: 201px;
-    top: calc(50% - 100px);
-    left: calc(50% - 296px);
-    perspective: 1500px;
-    
-    transition: opacity 2.0s ease, transform 2.0s ease;
-    transform: translateY(50px);
-    
-    z-index: 6000; 
-    opacity: 0;
-    pointer-events: none;
-    display: none; 
-}
+            position: fixed;
+            width: 593px;
+            height: 201px;
+            top: calc(50% - 100px);
+            left: calc(50% - 296px);
+            perspective: 1500px;
+            
+            transition: opacity 2.0s ease; 
+            
+            z-index: 6000; 
+            opacity: 0;
+            pointer-events: none;
+            display: none; 
+        }
         
         #scene-container.visible {
             display: block;
             opacity: 1;
-            transform: translateY(0);
             pointer-events: auto;
         }
         
@@ -276,615 +274,402 @@
         #scene-container.open #btn-pratica.hover { transform: translateY(8vh) rotateX(25deg) translateX(30px); }
         #scene-container.open #btn-espansioni.hover { transform: translateY(24vh) rotateX(25deg) translateX(30px); }
 
-.sub-card {
-    opacity: 0;
-    pointer-events: none;
-    z-index: 0;
-    transform: rotateX(0deg) translateY(0px);
-    background: var(--glass-dark-card);
-}
+        .sub-card {
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transform: rotateX(0deg) translateY(0px);
+            background: var(--glass-dark-card);
+        }
 
-/* --- SEQUENZA PRATICA (L1) --- */
-#scene-container.level-pratica-open #btn-pratica {
-    transform: translateY(-29vh) rotateX(35deg) scale(1.05) !important;
-    z-index: 10;
-    background: rgba(10, 10, 10, 0.6); 
-    border-color: rgba(255, 255, 255, 0.3);
-    opacity: 0.6 !important; 
-    pointer-events: none; 
-}
-
-#scene-container.level-pratica-open #btn-teoria,
-#scene-container.level-pratica-open #btn-espansioni,
-#scene-container.level-pratica-open #btn-main {
-    transform: translateY(150vh) rotateX(25deg) !important; 
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
-}
-
-#scene-container.level-teoria-open #btn-teoria {
-    transform: translateY(-29vh) rotateX(35deg) scale(1.05);
-    z-index: 10;
-    background: #121212 !important;
-    border-color: rgba(255, 255, 255, 0.5);
-    opacity: 1 !important; 
-    pointer-events: none; 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-
-#scene-container.level-pratica-open #btn-pratica {
-    transform: translateY(-29vh) rotateX(35deg) scale(1.05) !important;
-    z-index: 10;
-    background: rgba(10, 10, 10, 0.6); 
-    border-color: rgba(255, 255, 255, 0.3);
-    opacity: 0.6 !important; 
-    pointer-events: none; 
-}
-
-#scene-container.level-pratica-open #btn-teoria,
-#scene-container.level-pratica-open #btn-espansioni,
-#scene-container.level-pratica-open #btn-main {
-    transform: translateY(150vh) rotateX(25deg) !important; 
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
-}
-
-#scene-container.level-teoria-open #btn-pratica,
-#scene-container.level-teoria-open #btn-espansioni {
-    transform: translateY(100vh) rotateX(25deg);
-    opacity: 0;
-    pointer-events: none;
-}
-
-#scene-container.level-teoria-open #btn-teoria {
-    transform: translateY(-29vh) rotateX(35deg) scale(1.05);
-    z-index: 10;
-    background: rgba(10, 10, 10, 0.6); 
-    border-color: rgba(255, 255, 255, 0.3);
-    opacity: 0.6 !important; 
-    pointer-events: none; 
-}
-#scene-container.level-teoria-open #teoria-1-attenzione {
-    opacity: 1; pointer-events: auto;
-    transform: translateY(-8vh) rotateX(25deg);
-    z-index: 3;
-    transition-delay: 0.1s;
-}
-
-#scene-container.level-teoria-open #teoria-2-timedesign {
-    opacity: 1; pointer-events: auto;
-    transform: translateY(8vh) rotateX(25deg);
-    z-index: 2;
-    transition-delay: 0.2s;
-}
-
-#scene-container.level-teoria-open #teoria-3-rallentare {
-    opacity: 1; pointer-events: auto;
-    transform: translateY(24vh) rotateX(25deg);
-    z-index: 1;
-    transition-delay: 0.3s;
-}
-
-#scene-container.level-teoria-open #btn-teoria.hover {
-    transform: translateY(-29vh) rotateX(35deg) scale(1.05) translateX(10px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 50, 50, 0.5);
-}
-
-#scene-container.level-teoria-open #teoria-1-attenzione.hover {
-    transform: translateY(-8vh) rotateX(25deg) translateX(30px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 255, 255, 0.9);
-}
-
-#scene-container.level-teoria-open #teoria-2-timedesign.hover {
-    transform: translateY(8vh) rotateX(25deg) translateX(30px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 255, 255, 0.9);
-}
-
-#scene-container.level-teoria-open #teoria-3-rallentare.hover {
-    transform: translateY(24vh) rotateX(25deg) translateX(30px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 255, 255, 0.9);
-}
-.fullscreen-container { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100vw; 
-    height: 100vh; 
-    background: rgba(0, 0, 0, 0.6); 
-    backdrop-filter: blur(5px);
-    z-index: 7000; 
-    display: none; 
-    justify-content: center; 
-    align-items: center; 
-    opacity: 0; 
-    transition: opacity 0.5s ease; 
-}
-
-.fullscreen-container, #volto-fullscreen, #photoviz-fullscreen { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100vw; 
-    height: 100vh; 
-    background: rgba(0, 0, 0, 0.6); 
-    backdrop-filter: blur(8px);
-    z-index: 7000; 
-    display: none; 
-    justify-content: center; 
-    align-items: center; 
-    opacity: 0; 
-    transition: opacity 0.5s ease; 
-}
-
-.fullscreen-container.active, #volto-fullscreen.active, #photoviz-fullscreen.active { 
-    display: flex; 
-    opacity: 1; 
-}
-
-.fullscreen-content, .volto-popup-wrapper, .photoviz-popup-wrapper { 
-    width: min(90vw, 1000px);
-    height: min(80vh, 600px);
-    display: flex; 
-    background: var(--glass-dark-card);
-    border: 1px solid var(--border-glass);
-    border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    overflow: hidden;
-    transform: translateY(50px) scale(0.95);
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.photoviz-popup-wrapper {
-    flex-direction: column;
-    padding: 30px;
-}
-
-.fullscreen-container.active .fullscreen-content,
-#volto-fullscreen.active .volto-popup-wrapper,
-#photoviz-fullscreen.active .photoviz-popup-wrapper {
-    transform: translateY(0) scale(1);
-}
-
-.fullscreen-left-panel, #volto-left, #volto-right { 
-    flex: 1; 
-    padding: 40px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: flex-start; 
-}
-
-.fullscreen-right-panel, #volto-center { 
-    flex: 1.3; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    background: #000;
-    position: relative;
-    overflow: hidden;
-}
-
-#volto-center { border-right: 1px solid var(--border-glass); }
-
-.textbox-container { 
-    width: 100%; 
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: transparent; 
-    border: none; 
-    padding: 0; 
-    overflow-y: auto; 
-}
-
-.textbox-container h1 { 
-    font-family: var(--font-pixel); 
-    font-size: 28px; 
-    margin-bottom: 24px; 
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-glass);
-    padding-bottom: 12px;
-}
-
-.textbox-container p { 
-    font-family: 'Inter', sans-serif !important; 
-    font-size: 16px; 
-    line-height: 1.6; 
-    color: var(--text-primary); 
-    text-align: left; 
-    font-weight: 300;
-}
-
-.image-container, #volto-canvas-container, #photoviz-image-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.animation-image, #volto-canvas, #photoviz-canvas {
-    max-width: 90%;
-    max-height: 90%;
-    border-radius: 12px;
-    object-fit: contain;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-#metodi-container { transform: scale(0.8); }
-
-#left-edge-back.force-visible {
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    background: linear-gradient(to right, rgba(0,0,0,0.4), transparent);
-}
-
-
-/* --- SEQUENZA TEORIA (L1) --- */
-#scene-container.level-teoria #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
-#scene-container.level-teoria #btn-pratica { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-teoria #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-teoria #btn-teoria { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
-
-#scene-container.level-teoria-open #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; pointer-events: none; }
-#scene-container.level-teoria-open #btn-pratica, #scene-container.level-teoria-open #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; }
-#scene-container.level-teoria-open #btn-teoria { transform: translateY(-29vh) rotateX(35deg) scale(1.05); z-index: 10; background: rgba(10,10,10,0.85); }
-#scene-container.level-teoria-open #teoria-1-attenzione { opacity: 1; pointer-events: auto; transform: translateY(-8vh) rotateX(25deg); z-index: 3; }
-#scene-container.level-teoria-open #teoria-2-timedesign { opacity: 1; pointer-events: auto; transform: translateY(8vh) rotateX(25deg); z-index: 2; }
-#scene-container.level-teoria-open #teoria-3-rallentare { opacity: 1; pointer-events: auto; transform: translateY(24vh) rotateX(25deg); z-index: 1; }
-
-/* --- SEQUENZA ATTENZIONE (L2) --- */
-#scene-container.level-attenzione #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
-#scene-container.level-attenzione #teoria-2-timedesign { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-attenzione #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-attenzione #teoria-1-attenzione { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
-
-#scene-container.level-attenzione-open #teoria-1-attenzione { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
-#scene-container.level-attenzione-open #att-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
-#scene-container.level-attenzione-open #att-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
-
-/* --- SEQUENZA TIME DESIGN (L2) --- */
-#scene-container.level-timedesign #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
-#scene-container.level-timedesign #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-timedesign #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-timedesign #teoria-2-timedesign { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
-
-#scene-container.level-timedesign-open #teoria-2-timedesign { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
-#scene-container.level-timedesign-open #time-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
-#scene-container.level-timedesign-open #time-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
-
-/* --- SEQUENZA RALLENTARE (L2) --- */
-#scene-container.level-rallentare #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
-#scene-container.level-rallentare #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-rallentare #teoria-2-timedesign { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
-#scene-container.level-rallentare #teoria-3-rallentare { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
-
-#scene-container.level-rallentare-open #teoria-3-rallentare { transform: translateY(-30vh) rotateX(35deg) scale(1.05); z-index: 6; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
-#scene-container.level-rallentare-open #rall-1 { opacity: 1; pointer-events: auto; transform: translateY(-11vh) rotateX(25deg); z-index: 5; }
-#scene-container.level-rallentare-open #rall-2 { opacity: 1; pointer-events: auto; transform: translateY(1vh) rotateX(25deg); z-index: 4; }
-#scene-container.level-rallentare-open #rall-3 { opacity: 1; pointer-events: auto; transform: translateY(13vh) rotateX(25deg); z-index: 3; }
-#scene-container.level-rallentare-open #rall-4 { opacity: 1; pointer-events: auto; transform: translateY(25vh) rotateX(25deg); z-index: 2; }
-
-#close-button.visible { display: flex !important; pointer-events: auto; }
-#close-button.hover { background-color: rgba(100,0,0,0.8); border-color: rgba(255,50,50,0.9); transform: translateY(-4px); }
-
-#left-edge-back {
-    position: fixed;
-    top: 80px;
-    bottom: 0;
-    left: 0;
-    width: 60px;
-    height: calc(100vh - 80px);
-    z-index: 20000 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.3s ease, opacity 0.3s ease, visibility 0.3s;
-    opacity: 0;
-    visibility: hidden;
-    border-radius: 0;
-}
-
-#left-edge-back.is-active, #left-edge-back.force-visible {
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}
-
-#left-edge-back span {
-    font-family: var(--font-pixel);
-    font-size: 50px;
-    color: white;
-    transform: scale(1);
-    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-    pointer-events: none;
-    opacity: 0.5;
-    text-shadow: 0 0 10px rgba(0,0,0,0.8);
-}
-
-#left-edge-back:hover {
-    background: linear-gradient(to right, rgba(0,0,0,0.8), transparent);
-}
-
-#left-edge-back:hover span {
-    opacity: 1; 
-    transform: scale(1.2) translateX(10px);
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-
-
-.fullscreen-container, #volto-fullscreen, #photoviz-fullscreen { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100vw; 
-    height: 100vh; 
-    background: rgba(0, 0, 0, 0.85); 
-    backdrop-filter: blur(12px);
-    z-index: 7000; 
-    display: none; 
-    justify-content: center; 
-    align-items: center; 
-    opacity: 0; 
-    transition: opacity 0.4s ease; 
-}
-
-.fullscreen-container.active, #volto-fullscreen.active, #photoviz-fullscreen.active { 
-    display: flex; 
-    opacity: 1; 
-}
-
-.fullscreen-content, .volto-popup-wrapper, .photoviz-popup-wrapper { 
-    width: min(90vw, 1100px);
-    height: min(85vh, 650px);
-    display: flex; 
-    background: #1a1a1a;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-    transform: translateY(30px) scale(0.98);
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.photoviz-popup-wrapper {
-    flex-direction: column;
-    padding: 0;
-}
-
-.fullscreen-container.active .fullscreen-content,
-#volto-fullscreen.active .volto-popup-wrapper,
-#photoviz-fullscreen.active .photoviz-popup-wrapper {
-    transform: translateY(0) scale(1);
-}
-
-.fullscreen-left-panel, #volto-left, #volto-right { 
-    flex: 1; 
-    padding: 40px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: flex-start;
-    background: #1a1a1a;
-}
-
-.fullscreen-right-panel, #volto-center { 
-    flex: 1.3; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    background: #000;
-    position: relative;
-    overflow: hidden;
-}
-
-.textbox-container { 
-    width: 100%; 
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: transparent; 
-    border: none; 
-    padding: 0; 
-    overflow-y: auto; 
-}
-
-.textbox-container h1 { 
-    font-family: var(--font-pixel); 
-    font-size: 24px; 
-    margin-bottom: 20px; 
-    color: #fff;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    padding-bottom: 15px;
-    letter-spacing: 1px;
-    width: 100%;
-}
-
-.textbox-container p { 
-    font-family: 'Inter', sans-serif !important; 
-    font-size: 16px; 
-    line-height: 1.7; 
-    color: #e0e0e0; 
-    text-align: left; 
-    font-weight: 300;
-    margin: 0;
-}
-
-.image-container, #volto-canvas-container, #photoviz-image-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.animation-image, #volto-canvas, #photoviz-canvas {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 8px;
-    object-fit: contain;
-}
-
-#photoviz-title {
-    font-family: var(--font-pixel);
-    font-size: 24px;
-    margin: 20px 0;
-    text-align: center;
-    width: 100%;
-}
-
-#photoviz-center-stage {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #000;
-    overflow: hidden;
-}
-
-#photoviz-controls-area {
-    width: 100%;
-    padding: 15px 40px;
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    background: #1a1a1a;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    box-sizing: border-box;
-}
-
-#logo-container.nav-active {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    top: 40px !important;
-    left: 50% !important;
-    transform: translate(-50%, 0) !important;
-    transition: all 1.0s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-#logo-container.nav-active #logo-img {
-    width: 80px !important;
-}
-
-#scene-container.quiete-top #btn-main {
-    transform: translateY(calc(-50vh + 30px)) scale(0.35) rotateX(0deg) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    z-index: 8000 !important;
     
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: 0 0 0 rgba(0,0,0,0) !important;
-    
-    backdrop-filter: blur(0px) saturate(100%) brightness(1) !important;
-    -webkit-backdrop-filter: blur(0px) saturate(100%) brightness(1) !important;
-    
-    transition: all 1.2s cubic-bezier(0.23, 1, 0.32, 1) !important; 
-}
+        #scene-container.level-pratica-open #btn-pratica {
+            transform: translateY(-29vh) rotateX(35deg) scale(1.05) !important;
+            z-index: 10;
+            background: rgba(10, 10, 10, 0.6); 
+            border-color: rgba(255, 255, 255, 0.3);
+            opacity: 0.6 !important; 
+            pointer-events: none; 
+        }
 
-#scene-container.quiete-top #btn-main:hover {
-    transform: translateY(calc(-50vh + 30px)) scale(0.4) rotateX(0deg) !important;
-    cursor: pointer;
-}
+        #scene-container.level-pratica-open #btn-teoria,
+        #scene-container.level-pratica-open #btn-espansioni,
+        #scene-container.level-pratica-open #btn-main {
+            transform: translateY(150vh) rotateX(25deg) !important; 
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
+        }
 
+        #scene-container.level-teoria-open #btn-teoria {
+            transform: translateY(-29vh) rotateX(35deg) scale(1.05);
+            z-index: 10;
+            background: #121212 !important;
+            border-color: rgba(255, 255, 255, 0.5);
+            opacity: 1 !important; 
+            pointer-events: none; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
 
-#scene-container.level-teoria-open #btn-pratica,
-#scene-container.level-teoria-open #btn-espansioni {
-    transform: translateY(150vh) rotateX(25deg) !important; 
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 1.0s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s ease;
-}
+        #scene-container.level-teoria-open #btn-pratica,
+        #scene-container.level-teoria-open #btn-espansioni {
+            transform: translateY(100vh) rotateX(25deg);
+            opacity: 0;
+            pointer-events: none;
+        }
 
+        #scene-container.level-teoria-open #teoria-1-attenzione {
+            opacity: 1; pointer-events: auto;
+            transform: translateY(-8vh) rotateX(25deg);
+            z-index: 3;
+            transition-delay: 0.1s;
+        }
 
-.sub-card {
-    transform: translateY(-8vh) rotateX(0deg) scale(0.8);
-    opacity: 0;
-    z-index: 0;
-    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-}
+        #scene-container.level-teoria-open #teoria-2-timedesign {
+            opacity: 1; pointer-events: auto;
+            transform: translateY(8vh) rotateX(25deg);
+            z-index: 2;
+            transition-delay: 0.2s;
+        }
 
-#scene-container.level-attenzione-open #att-1.hover,
-#scene-container.level-attenzione-open #att-2.hover,
-#scene-container.level-timedesign-open #time-1.hover,
-#scene-container.level-timedesign-open #time-2.hover {
-    transform: translateY(0px) rotateX(25deg) translateX(30px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 255, 255, 0.9);
-}
-#scene-container.level-attenzione-open #att-2.hover,
-#scene-container.level-timedesign-open #time-2.hover { transform: translateY(20vh) rotateX(25deg) translateX(30px); }
+        #scene-container.level-teoria-open #teoria-3-rallentare {
+            opacity: 1; pointer-events: auto;
+            transform: translateY(24vh) rotateX(25deg);
+            z-index: 1;
+            transition-delay: 0.3s;
+        }
 
-#scene-container.level-rallentare-open #rall-1.hover,
-#scene-container.level-rallentare-open #rall-2.hover,
-#scene-container.level-rallentare-open #rall-3.hover,
-#scene-container.level-rallentare-open #rall-4.hover {
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(255, 255, 255, 0.9);
-    transform: translateY(-11vh) rotateX(25deg) translateX(30px); 
-}
-#scene-container.level-rallentare-open #rall-2.hover { transform: translateY(1vh) rotateX(25deg) translateX(30px); }
-#scene-container.level-rallentare-open #rall-3.hover { transform: translateY(13vh) rotateX(25deg) translateX(30px); }
-#scene-container.level-rallentare-open #rall-4.hover { transform: translateY(25vh) rotateX(25deg) translateX(30px); }
+        #scene-container.level-teoria-open #btn-teoria.hover {
+            transform: translateY(-29vh) rotateX(35deg) scale(1.05) translateX(10px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 50, 50, 0.5);
+        }
 
-#scene-container:not(.open):not(.quiete-top) #btn-main {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transform: rotateX(0deg) translateY(0px) !important;
-}
+        #scene-container.level-teoria-open #teoria-1-attenzione.hover {
+            transform: translateY(-8vh) rotateX(25deg) translateX(30px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
 
-.photoviz-btn {
-    flex: 0 1 250px; 
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
+        #scene-container.level-teoria-open #teoria-2-timedesign.hover {
+            transform: translateY(8vh) rotateX(25deg) translateX(30px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
 
-.photoviz-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-5px);
-}
+        #scene-container.level-teoria-open #teoria-3-rallentare.hover {
+            transform: translateY(24vh) rotateX(25deg) translateX(30px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
 
-.photoviz-btn.active-state {
-    background: var(--gradient-purple);
-    border-color: white;
-    transform: scale(1.05);
-}
+        .fullscreen-container, #volto-fullscreen, #photoviz-fullscreen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            background: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(12px);
+            z-index: 7000; 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            opacity: 0; 
+            transition: opacity 0.4s ease; 
+        }
 
-.pv-number {
-    font-size: 24px; 
-    font-weight: 700;
-    color: white;
-}
+        .fullscreen-container.active, #volto-fullscreen.active, #photoviz-fullscreen.active { 
+            display: flex; 
+            opacity: 1; 
+        }
 
-.pv-year {
-    font-family: var(--font-pixel);
-    font-size: 16px;
-    margin-top: 4px;
-}
+        .fullscreen-content, .volto-popup-wrapper, .photoviz-popup-wrapper { 
+            width: min(90vw, 1100px);
+            height: min(85vh, 650px);
+            display: flex; 
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transform: translateY(30px) scale(0.98);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-#hamburger-btn { z-index: 30001; }
+        .photoviz-popup-wrapper {
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .fullscreen-container.active .fullscreen-content,
+        #volto-fullscreen.active .volto-popup-wrapper,
+        #photoviz-fullscreen.active .photoviz-popup-wrapper {
+            transform: translateY(0) scale(1);
+        }
+
+        .fullscreen-left-panel, #volto-left, #volto-right { 
+            flex: 1; 
+            padding: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: flex-start;
+            background: #1a1a1a;
+        }
+
+        .fullscreen-right-panel, #volto-center { 
+            flex: 1.3; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #volto-center { border-right: 1px solid var(--border-glass); }
+
+        .textbox-container { 
+            width: 100%; 
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: transparent; 
+            border: none; 
+            padding: 0; 
+            overflow-y: auto; 
+        }
+
+        .textbox-container h1 { 
+            font-family: var(--font-pixel); 
+            font-size: 24px; 
+            margin-bottom: 20px; 
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .textbox-container p { 
+            font-family: 'Inter', sans-serif !important; 
+            font-size: 16px; 
+            line-height: 1.7; 
+            color: #e0e0e0; 
+            text-align: left; 
+            font-weight: 300;
+            margin: 0;
+        }
+
+        .image-container, #volto-canvas-container, #photoviz-image-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .animation-image, #volto-canvas, #photoviz-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        #metodi-container { transform: scale(0.8); }
+
+        #left-edge-back {
+            position: fixed;
+            top: 80px;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: calc(100vh - 80px);
+            z-index: 20000 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease, opacity 0.3s ease, visibility 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            border-radius: 0;
+        }
+
+        #left-edge-back.is-active, #left-edge-back.force-visible {
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        #left-edge-back span {
+            font-family: var(--font-pixel);
+            font-size: 50px;
+            color: white;
+            transform: scale(1);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            pointer-events: none;
+            opacity: 0.5;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        #left-edge-back:hover {
+            background: linear-gradient(to right, rgba(0,0,0,0.8), transparent);
+        }
+
+        #left-edge-back:hover span {
+            opacity: 1; 
+            transform: scale(1.2) translateX(10px);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        /* --- SEQUENZA TEORIA (L1) --- */
+        #scene-container.level-teoria #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+        #scene-container.level-teoria #btn-pratica { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-teoria #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-teoria #btn-teoria { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+        #scene-container.level-teoria-open #btn-main { transform: translateY(-100vh) rotateX(35deg); opacity: 0; pointer-events: none; }
+        #scene-container.level-teoria-open #btn-pratica, #scene-container.level-teoria-open #btn-espansioni { transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; }
+
+        /* --- SEQUENZA ATTENZIONE (L2) --- */
+        #scene-container.level-attenzione #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+        #scene-container.level-attenzione #teoria-2-timedesign { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-attenzione #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-attenzione #teoria-1-attenzione { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+        #scene-container.level-attenzione-open #teoria-1-attenzione { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+        #scene-container.level-attenzione-open #att-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
+        #scene-container.level-attenzione-open #att-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
+
+        /* --- SEQUENZA TIME DESIGN (L2) --- */
+        #scene-container.level-timedesign #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+        #scene-container.level-timedesign #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-timedesign #teoria-3-rallentare { transform: translateY(100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-timedesign #teoria-2-timedesign { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+        #scene-container.level-timedesign-open #teoria-2-timedesign { transform: translateY(-25vh) rotateX(35deg) scale(1.05); z-index: 3; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+        #scene-container.level-timedesign-open #time-1 { opacity: 1; pointer-events: auto; transform: translateY(0px) rotateX(25deg); z-index: 2; }
+        #scene-container.level-timedesign-open #time-2 { opacity: 1; pointer-events: auto; transform: translateY(20vh) rotateX(25deg); z-index: 1; }
+
+        /* --- SEQUENZA RALLENTARE (L2) --- */
+        #scene-container.level-rallentare #btn-teoria { transform: translateY(-100vh) rotateX(35deg); opacity: 0; }
+        #scene-container.level-rallentare #teoria-1-attenzione { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-rallentare #teoria-2-timedesign { transform: translateY(-100vh) rotateX(25deg); opacity: 0; }
+        #scene-container.level-rallentare #teoria-3-rallentare { transform: rotateX(0deg) translateY(0px); z-index: 3; opacity: 1; }
+
+        #scene-container.level-rallentare-open #teoria-3-rallentare { transform: translateY(-30vh) rotateX(35deg) scale(1.05); z-index: 6; background: rgba(10,10,10,0.85); opacity: 1; pointer-events: auto; }
+        #scene-container.level-rallentare-open #rall-1 { opacity: 1; pointer-events: auto; transform: translateY(-11vh) rotateX(25deg); z-index: 5; }
+        #scene-container.level-rallentare-open #rall-2 { opacity: 1; pointer-events: auto; transform: translateY(1vh) rotateX(25deg); z-index: 4; }
+        #scene-container.level-rallentare-open #rall-3 { opacity: 1; pointer-events: auto; transform: translateY(13vh) rotateX(25deg); z-index: 3; }
+        #scene-container.level-rallentare-open #rall-4 { opacity: 1; pointer-events: auto; transform: translateY(25vh) rotateX(25deg); z-index: 2; }
+
+        #close-button.visible { display: flex !important; pointer-events: auto; }
+        #close-button.hover { background-color: rgba(100,0,0,0.8); border-color: rgba(255,50,50,0.9); transform: translateY(-4px); }
+
+        #photoviz-title {
+            font-family: var(--font-pixel);
+            font-size: 24px;
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        #photoviz-center-stage {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #photoviz-controls-area {
+            width: 100%;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            background: #1a1a1a;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
+        }
+
+        #logo-container.nav-active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            top: 40px !important;
+            left: 50% !important;
+            transform: translate(-50%, 0) !important;
+            transition: all 1.0s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        #logo-container.nav-active #logo-img {
+            width: 80px !important;
+        }
+
+        #scene-container.quiete-top #btn-main {
+            transform: translateY(calc(-50vh + 30px)) scale(0.35) rotateX(0deg) !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 8000 !important;
+            
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 rgba(0,0,0,0) !important;
+            
+            backdrop-filter: blur(0px) saturate(100%) brightness(1) !important;
+            -webkit-backdrop-filter: blur(0px) saturate(100%) brightness(1) !important;
+            
+            transition: all 1.2s cubic-bezier(0.23, 1, 0.32, 1) !important; 
+        }
+
+        #scene-container.quiete-top #btn-main:hover {
+            transform: translateY(calc(-50vh + 30px)) scale(0.4) rotateX(0deg) !important;
+            cursor: pointer;
+        }
+
+        #scene-container:not(.open):not(.quiete-top) #btn-main {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: rotateX(0deg) translateY(0px) !important;
+        }
+
+        .photoviz-btn {
+            flex: 0 1 250px; 
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .photoviz-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .photoviz-btn.active-state {
+            background: var(--gradient-purple);
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .pv-number { font-size: 24px; font-weight: 700; color: white; }
+        .pv-year { font-family: var(--font-pixel); font-size: 16px; margin-top: 4px; }
+
+        #hamburger-btn { z-index: 30001; }
         #side-menu { z-index: 30000; }
 
         #pratica-grid-view {
@@ -944,24 +729,15 @@
         #scene-container.level-pratica-open #btn-main { 
              transform: translateY(100vh) rotateX(25deg); opacity: 0; pointer-events: none; 
         }
-        
-        #scene-container.level-pratica-open #btn-pratica {
-            transform: translateY(-30vh) rotateX(35deg) scale(1.05);
-            z-index: 10;
-            background: rgba(10, 10, 10, 0.6); 
-            border-color: rgba(255, 255, 255, 0.3);
-            opacity: 0.6 !important; 
-            pointer-events: none; 
+
+        #side-menu.open ~ #left-edge-back {
+            display: none !important;
         }
 
-#side-menu.open ~ #left-edge-back {
-    display: none !important;
-}
-
-#hint-wrapper {
+        #hint-wrapper {
             position: absolute;
             bottom: 45px; 
-	        left: 50%;
+            left: 50%;
             transform: translateX(-50%);
             opacity: 0;
             transition: opacity 1.5s ease;
@@ -981,9 +757,6 @@
         @keyframes blinker {
             50% { opacity: 0; }
         }
-
-    
-		
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
@@ -1015,7 +788,8 @@
     </div>
 
     <div id="glass-overlay"></div>
-<div id="time1-fullscreen" class="fullscreen-container">
+    
+    <div id="time1-fullscreen" class="fullscreen-container">
         <div class="fullscreen-content">
             <div class="fullscreen-left-panel">
                 <div class="textbox-container">
@@ -1158,12 +932,12 @@
     </div>
 
     <div id="modal-overlay">
-    <div class="modal-close-button"></div>
-    <div id="modal-content">
-        <h1 id="modal-title"></h1>
-        <p id="modal-text"></p>
+        <div class="modal-close-button"></div>
+        <div id="modal-content">
+            <h1 id="modal-title"></h1>
+            <p id="modal-text"></p>
+        </div>
     </div>
-</div>
     
     <div id="close-button" style="display:none; position:fixed; top:20px; left:20px; width:60px; height:60px; border-radius:50%; background:rgba(18,18,18,0.75); border:1px solid rgba(255,255,255,0.18); z-index:9000; color:white; font-size:30px; justify-content:center; align-items:center; cursor:pointer;">&larr;</div>
 
@@ -1218,7 +992,7 @@
                         <canvas id="canvas-layer"></canvas>
                     </div>
                 </div>
-               <div class="home-bar">
+                <div class="home-bar">
                     <div class="bar"></div>
                 </div>
             </div>
@@ -1226,8 +1000,9 @@
             <div id="hint-wrapper">
                 <span class="hint-text">continua a scorrere</span>
             </div>
+        </div> 
 
-        </div> <div id="final-logo"></div>
+        <div id="final-logo"></div>
         
         <div id="scene-container">
             <div class="glass-card" id="btn-main"></div> 
@@ -1254,26 +1029,26 @@
         <div id="index-dot" class="finger-dot"></div>
         <div id="thumb-dot" class="finger-dot"></div>
 
-<div id="pratica-grid-view">
-        <div class="pratica-grid-container">
-            <div class="p-grid-item" onclick="window.location.href='Rilievo.html'">
-                <img src="images/image1.png" alt="Rilievo">
-                <div class="program-label">RILIEVO</div>
-            </div>
-            <div class="p-grid-item" onclick="window.location.href='Deforma.html'">
-                <img src="images/image2.png" alt="Deforma">
-                <div class="program-label">DEFORMA</div>
-            </div>
-            <div class="p-grid-item" onclick="window.location.href='Lettere.html'">
-                <img src="images/image3.png" alt="Lettere">
-                <div class="program-label">LETTERE</div>
-            </div>
-            <div class="p-grid-item" onclick="window.location.href='Colore.html'">
-                <img src="images/image4.png" alt="Colore">
-                <div class="program-label">COLORE</div>
+        <div id="pratica-grid-view">
+            <div class="pratica-grid-container">
+                <div class="p-grid-item" onclick="window.location.href='Rilievo.html'">
+                    <img src="images/image1.png" alt="Rilievo">
+                    <div class="program-label">RILIEVO</div>
+                </div>
+                <div class="p-grid-item" onclick="window.location.href='Deforma.html'">
+                    <img src="images/image2.png" alt="Deforma">
+                    <div class="program-label">DEFORMA</div>
+                </div>
+                <div class="p-grid-item" onclick="window.location.href='Lettere.html'">
+                    <img src="images/image3.png" alt="Lettere">
+                    <div class="program-label">LETTERE</div>
+                </div>
+                <div class="p-grid-item" onclick="window.location.href='Colore.html'">
+                    <img src="images/image4.png" alt="Colore">
+                    <div class="program-label">COLORE</div>
+                </div>
             </div>
         </div>
-    </div>
         
         <div id="controls-container">
             <div class="control-group">
@@ -1294,49 +1069,41 @@
         let pointOfNoReturn = false;
         let isMenuOpen = false;
         let currentPage = 'home';
+        let lastLiftedCard = null;
 
-	let lastLiftedCard = null;
+        function liftCardAndOpen(cardId, openCallback) {
+            lastLiftedCard = cardId;
+            const card = document.getElementById(cardId);
+            card.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
+            card.style.transform = 'translateY(-150vh) rotateX(45deg)';
+            
+            const siblings = Array.from(sceneContainer.children).filter(el => 
+                el.id !== cardId && 
+                el.classList.contains('sub-card') && 
+                window.getComputedStyle(el).opacity > 0
+            );
+            
+            siblings.forEach(sib => {
+                sib.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
+                sib.style.transform = 'translateY(150vh) rotateX(25deg)';
+            });
 
-function liftCardAndOpen(cardId, openCallback) {
-    lastLiftedCard = cardId;
-    const card = document.getElementById(cardId);
-    
+            setTimeout(() => {
+                if(openCallback) openCallback();
+            }, 300);
+        }
 
-    card.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
-    card.style.transform = 'translateY(-150vh) rotateX(45deg)';
-    
-
-    const siblings = Array.from(sceneContainer.children).filter(el => 
-        el.id !== cardId && 
-        el.classList.contains('sub-card') && 
-        window.getComputedStyle(el).opacity > 0
-    );
-    
-    siblings.forEach(sib => {
-        sib.style.transition = 'transform 1s cubic-bezier(0.23, 1, 0.32, 1)';
-        sib.style.transform = 'translateY(150vh) rotateX(25deg)';
-    });
-
-
-    setTimeout(() => {
-        if(openCallback) openCallback();
-    }, 300);
-}
-
-function restoreLiftedCard() {
-    if(!lastLiftedCard) return;
-    
-    const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
-    allCards.forEach(c => {
-        c.removeAttribute('style');
-        
-        c.style.transform = '';
-        c.style.transition = '';
-        c.style.opacity = ''; 
-    });
-    
-    lastLiftedCard = null;
-}
+        function restoreLiftedCard() {
+            if(!lastLiftedCard) return;
+            const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
+            allCards.forEach(c => {
+                c.removeAttribute('style');
+                c.style.transform = '';
+                c.style.transition = '';
+                c.style.opacity = ''; 
+            });
+            lastLiftedCard = null;
+        }
 
         const mainWrapper = document.getElementById('main-wrapper');
         const glassOverlay = document.getElementById('glass-overlay'); 
@@ -1373,13 +1140,11 @@ function restoreLiftedCard() {
         const btnTeoria = document.getElementById('btn-teoria');
         const btnPratica = document.getElementById('btn-pratica');
         const btnEspansioni = document.getElementById('btn-espansioni');
-
-	const praticaGridView = document.getElementById('pratica-grid-view');
-
+        const praticaGridView = document.getElementById('pratica-grid-view');
 
         const controlsContainer = document.getElementById('controls-container');
         const btnPinch = document.getElementById('btn-pinch');
-const teoria1 = document.getElementById('teoria-1-attenzione');
+        const teoria1 = document.getElementById('teoria-1-attenzione');
         const teoria2 = document.getElementById('teoria-2-timedesign');
         const teoria3 = document.getElementById('teoria-3-rallentare');
         
@@ -1393,7 +1158,7 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
         const rall4 = document.getElementById('rall-4');
         
         const closeButton = document.getElementById('close-button');
-	const leftEdgeBack = document.getElementById('left-edge-back');
+        const leftEdgeBack = document.getElementById('left-edge-back');
         const voltoFullscreen = document.getElementById('volto-fullscreen');
         const voltoCanvas = document.getElementById('volto-canvas');
         const voltoCtx = voltoCanvas.getContext('2d');
@@ -1407,10 +1172,10 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
         const modalOverlay = document.getElementById('modal-overlay');
         const modalTitle = document.getElementById('modal-title');
         const modalText = document.getElementById('modal-text');
-	document.addEventListener('contextmenu', event => event.preventDefault());
+        
+        document.addEventListener('contextmenu', event => event.preventDefault());
         
         let currentView = 'main-closed';
-        let currentMetodiView = 'closed';
         let currentModal = null;
         let animationData = {};
         let timeDesignAnimationStart = null;
@@ -1418,38 +1183,13 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
         let currentPhotovizPosition = 'center';
 
         const animationScreens = {
-    'time1': { screen: document.getElementById('time1-fullscreen'), canvas: document.getElementById('time1-canvas'), ctx: null },
-    'time2': { screen: document.getElementById('time2-fullscreen') }, 
-    'rall1': { 
-        screen: document.getElementById('rall1-fullscreen'), 
-        img: document.getElementById('rall1-animation'), 
-        basePath: './loop/Rilievo/Rilievo', 
-        delay: 1000,
-        totalFrames: 20
-    },
-    'rall2': { 
-        screen: document.getElementById('rall2-fullscreen'), 
-        img: document.getElementById('rall2-animation'), 
-        basePath: './loop/Deforma/Deforma', 
-        delay: 1000,
-        totalFrames: 20
-    },
-    'rall3': { 
-        screen: document.getElementById('rall3-fullscreen'), 
-        img: document.getElementById('rall3-animation'), 
-        basePath: './loop/Lettere/Lettere', 
-        delay: 1000,
-        totalFrames: 20
-    },
-    'rall4': { 
-        screen: document.getElementById('rall4-fullscreen'), 
-        img: document.getElementById('rall4-animation'), 
-        basePath: './loop/Colore/Colore', 
-        delay: 1000,
-        totalFrames: 20
-    }
-};
-
+            'time1': { screen: document.getElementById('time1-fullscreen'), canvas: document.getElementById('time1-canvas'), ctx: null },
+            'time2': { screen: document.getElementById('time2-fullscreen') }, 
+            'rall1': { screen: document.getElementById('rall1-fullscreen'), img: document.getElementById('rall1-animation'), basePath: './loop/Rilievo/Rilievo', delay: 1000, totalFrames: 20 },
+            'rall2': { screen: document.getElementById('rall2-fullscreen'), img: document.getElementById('rall2-animation'), basePath: './loop/Deforma/Deforma', delay: 1000, totalFrames: 20 },
+            'rall3': { screen: document.getElementById('rall3-fullscreen'), img: document.getElementById('rall3-animation'), basePath: './loop/Lettere/Lettere', delay: 1000, totalFrames: 20 },
+            'rall4': { screen: document.getElementById('rall4-fullscreen'), img: document.getElementById('rall4-animation'), basePath: './loop/Colore/Colore', delay: 1000, totalFrames: 20 }
+        };
 
         animationScreens.time1.ctx = animationScreens.time1.canvas.getContext('2d');
         for (const key in animationScreens) { if (animationScreens[key].img) animationData[key] = { totalFrames: 0, currentFrame: 1, interval: null, preloaded: false }; }
@@ -1509,25 +1249,6 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
             { letter: T, spaceAfter: 2 }, { letter: E, spaceAfter: 0 }
         ];
 
-        function createInitialLogo() {
-            const canvas = document.createElement('canvas');
-            canvas.id = 'logo-canvas-intro';
-            
-            let gridW = 0;
-            finalLogoData.forEach((l, i) => gridW += 5 + (i < finalLogoData.length-1 ? l.spaceAfter : 0));
-            const totW = gridW * LOGO_PIXEL_SIZE;
-            
-            const totH = 6 * LOGO_PIXEL_SIZE;
-            
-            canvas.width = totW; 
-            canvas.height = totH;
-            const lCtx = canvas.getContext('2d');
-            
-            drawStaticLogoToCanvas(lCtx, 0, 0); 
-            
-            logoContainer.appendChild(canvas);
-        }
-
         function toggleMenu() {
             isMenuOpen = !isMenuOpen;
             if (isMenuOpen) {
@@ -1543,11 +1264,11 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
                     topBar.classList.remove('slide-up');
                 }
             }
-	if (isMenuOpen) {
-    leftEdgeBack.style.visibility = 'hidden';
-} else {
-    if (currentView !== 'main-closed') leftEdgeBack.style.visibility = 'visible';
-}
+            if (isMenuOpen) {
+                leftEdgeBack.style.visibility = 'hidden';
+            } else {
+                if (currentView !== 'main-closed') leftEdgeBack.style.visibility = 'visible';
+            }
         }
 
         function handleMenuNavigation(targetPage) {
@@ -1637,8 +1358,7 @@ const teoria1 = document.getElementById('teoria-1-attenzione');
             logoFormationStarted = false;
             logoCompleted = false;
             pointOfNoReturn = false; 
-            menuState = 'closed';
-sceneContainer.classList.remove('level-teoria-open');
+            sceneContainer.classList.remove('level-teoria-open');
             logoContainer.classList.remove('fade-out');
             particles = []; 
 
@@ -1657,7 +1377,6 @@ sceneContainer.classList.remove('level-teoria-open');
             sceneContainer.classList.remove('visible');
             sceneContainer.classList.remove('open');
             sceneContainer.style.opacity = '0';
-            sceneContainer.style.transform = 'translateY(50px)';
             
             const bc = document.getElementById('btn-logo-canvas');
             if(bc) bc.classList.remove('show-canvas');
@@ -1818,21 +1537,6 @@ sceneContainer.classList.remove('level-teoria-open');
             ctx.restore();
         }
 
-        function drawStaticLogoToCanvas(targetCtx, startX, startY) {
-            let curX = startX;
-            finalLogoData.forEach(item => {
-                item.letter.forEach((row, r) => {
-                    row.forEach((bit, c) => { 
-                        if(bit) {
-                            targetCtx.fillStyle = 'white';
-                            targetCtx.fillRect(curX + c*LOGO_PIXEL_SIZE, startY + r*LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE, LOGO_PIXEL_SIZE);
-                        }
-                    });
-                });
-                curX += (5 + item.spaceAfter) * LOGO_PIXEL_SIZE;
-            });
-        }
-
         function transferLogoToButton() {
             const btnCanvas = document.createElement('canvas');
             btnCanvas.id = 'btn-logo-canvas';
@@ -1881,12 +1585,11 @@ sceneContainer.classList.remove('level-teoria-open');
             
             setTimeout(() => {
                 btnCanvas.classList.add('show-canvas');
-                particles.forEach(p => {
-                    if (p.movingToLogo) {
-                        p.isDead = true; 
-                    }
-                });
-                particles = particles.filter(p => !p.isDead);
+                
+                // MODIFICA CRITICA: Uccidiamo TUTTE le 10.000 particelle rimaste vaganti
+                // Questo libera istantaneamente il processore e la memoria, evitando il blocco totale del browser!
+                particles.forEach(p => p.isDead = true);
+                particles = []; 
             }, 2000);
         }
 
@@ -1937,64 +1640,64 @@ sceneContainer.classList.remove('level-teoria-open');
             }, targets.length * 30 + 2500);
         }
 
-	function setSceneState(state) {
-    if (state !== 'main-closed') {
-        leftEdgeBack.classList.add('is-active');
-    } else {
-        leftEdgeBack.classList.remove('is-active');
-        leftEdgeBack.classList.remove('force-visible');
-    }
+        function setSceneState(state) {
+            if (state !== 'main-closed') {
+                leftEdgeBack.classList.add('is-active');
+            } else {
+                leftEdgeBack.classList.remove('is-active');
+                leftEdgeBack.classList.remove('force-visible');
+            }
 
-    if (logoCompleted) {
-        logoContainer.classList.remove('nav-active');
-        logoContainer.classList.add('fade-out');
-    }
+            if (logoCompleted) {
+                logoContainer.classList.remove('nav-active');
+                logoContainer.classList.add('fade-out');
+            }
 
-    const isInternalState = state.includes('teoria') || state.includes('attenzione') || state.includes('timedesign') || state.includes('rallentare') || state.includes('pratica');
+            const isInternalState = state.includes('teoria') || state.includes('attenzione') || state.includes('timedesign') || state.includes('rallentare') || state.includes('pratica');
 
-    if (isInternalState) {
-        sceneContainer.classList.add('quiete-top');
-    } else {
-        sceneContainer.classList.remove('quiete-top');
-    }
+            if (isInternalState) {
+                sceneContainer.classList.add('quiete-top');
+            } else {
+                sceneContainer.classList.remove('quiete-top');
+            }
 
-    sceneContainer.classList.remove(
-        'open', 
-        'level-teoria', 'level-teoria-open',
-        'level-attenzione', 'level-attenzione-open',
-        'level-timedesign', 'level-timedesign-open',
-        'level-rallentare', 'level-rallentare-open',
-        'level-pratica', 'level-pratica-open'
-    );
-    
-    sceneContainer.classList.add('visible');
+            sceneContainer.classList.remove(
+                'open', 
+                'level-teoria', 'level-teoria-open',
+                'level-attenzione', 'level-attenzione-open',
+                'level-timedesign', 'level-timedesign-open',
+                'level-rallentare', 'level-rallentare-open',
+                'level-pratica', 'level-pratica-open'
+            );
+            
+            sceneContainer.classList.add('visible');
 
-    switch (state) {
-        case 'main-open': 
-            sceneContainer.classList.add('open');
-            break;
-        case 'teoria-main': 
-            sceneContainer.classList.add('level-teoria'); 
-            break;
-        case 'teoria-open': 
-            sceneContainer.classList.add('level-teoria-open'); 
-            break;
-        case 'attenzione-main': sceneContainer.classList.add('level-attenzione'); break;
-        case 'attenzione-open': sceneContainer.classList.add('level-attenzione-open'); break;
-        case 'timedesign-main': sceneContainer.classList.add('level-timedesign'); break;
-        case 'timedesign-open': sceneContainer.classList.add('level-timedesign-open'); break;
-        case 'rallentare-main': sceneContainer.classList.add('level-rallentare'); break;
-        case 'rallentare-open': sceneContainer.classList.add('level-rallentare-open'); break;
-        
-        case 'pratica-main': sceneContainer.classList.add('level-pratica'); break;
-        case 'pratica-open': 
-            sceneContainer.classList.add('level-pratica-open'); 
-            praticaGridView.classList.add('active');
-            break;
-    }
-    
-    currentView = state;
-}
+            switch (state) {
+                case 'main-open': 
+                    sceneContainer.classList.add('open');
+                    break;
+                case 'teoria-main': 
+                    sceneContainer.classList.add('level-teoria'); 
+                    break;
+                case 'teoria-open': 
+                    sceneContainer.classList.add('level-teoria-open'); 
+                    break;
+                case 'attenzione-main': sceneContainer.classList.add('level-attenzione'); break;
+                case 'attenzione-open': sceneContainer.classList.add('level-attenzione-open'); break;
+                case 'timedesign-main': sceneContainer.classList.add('level-timedesign'); break;
+                case 'timedesign-open': sceneContainer.classList.add('level-timedesign-open'); break;
+                case 'rallentare-main': sceneContainer.classList.add('level-rallentare'); break;
+                case 'rallentare-open': sceneContainer.classList.add('level-rallentare-open'); break;
+                
+                case 'pratica-main': sceneContainer.classList.add('level-pratica'); break;
+                case 'pratica-open': 
+                    sceneContainer.classList.add('level-pratica-open'); 
+                    praticaGridView.classList.add('active');
+                    break;
+            }
+            
+            currentView = state;
+        }
 
         function toggle3DMenu() {
             if (!logoCompleted || pinchCooldown) return;
@@ -2021,7 +1724,7 @@ sceneContainer.classList.remove('level-teoria-open');
             pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
         }
 
-function openPraticaLevel() {
+        function openPraticaLevel() {
             if (pinchCooldown) return;
             setSceneState('pratica-main'); 
             setTimeout(() => setSceneState('pratica-open'), 800);
@@ -2039,7 +1742,6 @@ function openPraticaLevel() {
             }, 800);
             pinchCooldown = true; setTimeout(() => pinchCooldown = false, 500);
         }
-
 
         function openAttenzioneSublevel_Sequenced() {
             if (pinchCooldown) return;
@@ -2087,7 +1789,7 @@ function openPraticaLevel() {
             logoContainer.classList.remove('nav-active');
             logoContainer.classList.add('fade-out');
 
-	    praticaGridView.classList.remove('active');
+            praticaGridView.classList.remove('active');
             
             animationScreens.time1.screen.classList.remove('active');
             animationScreens.time2.screen.classList.remove('active');
@@ -2097,8 +1799,6 @@ function openPraticaLevel() {
             animationScreens.rall4.screen.classList.remove('active');
             voltoFullscreen.classList.remove('active');
             photovizFullscreen.classList.remove('active');
-            metodiContainer.classList.remove('metodi-open');
-            currentMetodiView = 'closed';
         }
 
         function handleBackButton() {
@@ -2119,6 +1819,79 @@ function openPraticaLevel() {
             else if(currentView === 'main-open') toggle3DMenu();
         }
 
+        function closeAnimationFullscreen(key) {
+            if(animationScreens[key]) {
+                animationScreens[key].screen.classList.remove('active');
+            }
+
+            if(key.startsWith('rall')) {
+                const data = animationData[key];
+                if(data && data.interval) {
+                    clearInterval(data.interval);
+                    data.interval = null;
+                }
+            }
+
+            const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
+            allCards.forEach(c => {
+                c.style.transform = '';
+                c.style.opacity = '';
+                c.style.transition = '';
+                c.style.pointerEvents = '';
+            });
+            
+            lastLiftedCard = null;
+
+            if(key.startsWith('time')) {
+                setSceneState('timedesign-open');
+            } else if(key.startsWith('rall')) {
+                setSceneState('rallentare-open');
+            } else if (key.startsWith('att') || key === 'volto' || key === 'photoviz') {
+                setSceneState('attenzione-open');
+            }
+        }
+
+        function startAnimationLoop(key) {
+            const data = animationData[key]; 
+            const screen = animationScreens[key];
+            if(!data || !screen || !screen.img) return;
+            
+            if(data.interval) clearInterval(data.interval);
+            
+            screen.img.onerror = function() {
+                this.style.display = 'none'; 
+                data.currentFrame = 1; 
+                this.src = `${screen.basePath}1.png`;
+            };
+
+            screen.img.onload = function() {
+                this.style.display = 'block';
+            };
+
+            data.currentFrame = 1;
+            screen.img.src = `${screen.basePath}1.png`;
+            
+            data.interval = setInterval(() => {
+                data.currentFrame++;
+                screen.img.src = `${screen.basePath}${data.currentFrame}.png`;
+            }, screen.delay);
+        }
+
+        function openVoltoFullscreen() {
+            voltoFullscreen.classList.add('active'); 
+            currentView = 'volto-fullscreen';
+            voltoCanvas.width = videoElement.videoWidth || 720; 
+            voltoCanvas.height = videoElement.videoHeight || 1280;
+            leftEdgeBack.classList.add('force-visible');
+        }
+
+        function openPhotoviz() { 
+            photovizFullscreen.classList.add('active'); 
+            currentView = 'photoviz-open'; 
+            photovizCanvas.width = 720; 
+            photovizCanvas.height = 1280; 
+            leftEdgeBack.classList.add('force-visible');
+        }
 
         function openAnimationFullscreen(key) {
             const data = animationScreens[key];
@@ -2126,218 +1899,96 @@ function openPraticaLevel() {
             data.screen.classList.add('active');
             currentView = `${key}-fullscreen`;
             if(key.startsWith('rall')) startAnimationLoop(key);
-            if(key === 'time1') { timeDesignAnimationStart = null; animationScreens.time1.canvas.width = videoElement.videoWidth; animationScreens.time1.canvas.height = videoElement.videoHeight; }
+            if(key === 'time1') { 
+                timeDesignAnimationStart = null; 
+                animationScreens.time1.canvas.width = videoElement.videoWidth; 
+                animationScreens.time1.canvas.height = videoElement.videoHeight; 
+            }
+            leftEdgeBack.classList.add('force-visible'); 
         }
 
-        function closeAnimationFullscreen(key) {
-    if(animationScreens[key]) {
-        animationScreens[key].screen.classList.remove('active');
-    }
-
-    if(key.startsWith('rall')) {
-        const data = animationData[key];
-        if(data && data.interval) {
-            clearInterval(data.interval);
-            data.interval = null;
+        function closeVoltoFullscreen() { 
+            voltoFullscreen.classList.remove('active'); 
+            closeAnimationFullscreen('volto');
         }
-    }
-
-    if(key === 'time2') { 
-        currentMetodiView = 'closed'; 
-        if(document.getElementById('metodi-container')) {
-            document.getElementById('metodi-container').classList.remove('metodi-open');
-        }
-    }
-
-    const allCards = sceneContainer.querySelectorAll('.glass-card, .sub-card');
-    allCards.forEach(c => {
-        c.style.transform = '';
-        c.style.opacity = '';
-        c.style.transition = '';
-        c.style.pointerEvents = '';
-    });
-    
-    lastLiftedCard = null;
-
-    if(key.startsWith('time')) {
-        setSceneState('timedesign-open');
-    } else if(key.startsWith('rall')) {
-        setSceneState('rallentare-open');
-    } else if (key.startsWith('att') || key === 'volto' || key === 'photoviz') {
-        setSceneState('attenzione-open');
-    }
-}
-
-        function startAnimationLoop(key) {
-    const data = animationData[key]; 
-    const screen = animationScreens[key];
-    if(!data || !screen || !screen.img) return;
-    
-    if(data.interval) clearInterval(data.interval);
-    
-    screen.img.onerror = function() {
-        this.style.display = 'none'; 
-        data.currentFrame = 1; 
-        this.src = `${screen.basePath}1.png`;
-    };
-
-    screen.img.onload = function() {
-        this.style.display = 'block';
-    };
-
-    data.currentFrame = 1;
-    screen.img.src = `${screen.basePath}1.png`;
-    
-    data.interval = setInterval(() => {
-        data.currentFrame++;
-        screen.img.src = `${screen.basePath}${data.currentFrame}.png`;
-    }, screen.delay);
-}
-
-
-function openVoltoFullscreen() {
-    voltoFullscreen.classList.add('active'); 
-    currentView = 'volto-fullscreen';
-    voltoCanvas.width = 720; 
-    voltoCanvas.height = 1280; 
-    leftEdgeBack.classList.add('force-visible'); 
-}
-function openPhotoviz() { 
-    photovizFullscreen.classList.add('active'); 
-    currentView = 'photoviz-open'; 
-    photovizCanvas.width = 720; 
-    photovizCanvas.height = 1280; 
-    leftEdgeBack.classList.add('force-visible');
-}
-
-function openVoltoFullscreen() {
-    voltoFullscreen.classList.add('active'); 
-    currentView = 'volto-fullscreen';
-    voltoCanvas.width = videoElement.videoWidth; 
-    voltoCanvas.height = videoElement.videoHeight;
-    leftEdgeBack.classList.add('force-visible');
-}
-
-function openPhotoviz() { 
-    photovizFullscreen.classList.add('active'); 
-    currentView = 'photoviz-open'; 
-    photovizCanvas.width = 720; 
-    photovizCanvas.height = 1280; 
-    leftEdgeBack.classList.add('force-visible');
-}
-
-function openAnimationFullscreen(key) {
-    const data = animationScreens[key];
-    if(!data) return;
-    data.screen.classList.add('active');
-    currentView = `${key}-fullscreen`;
-    if(key.startsWith('rall')) startAnimationLoop(key);
-    if(key === 'time1') { 
-        timeDesignAnimationStart = null; 
-        animationScreens.time1.canvas.width = videoElement.videoWidth; 
-        animationScreens.time1.canvas.height = videoElement.videoHeight; 
-    }
-    leftEdgeBack.classList.add('force-visible'); 
-}
-        
-
-function closeVoltoFullscreen() { 
-    voltoFullscreen.classList.remove('active'); 
-    closeAnimationFullscreen('volto');
-}
 
         function drawVoltoCanvas() {
-    if (!voltoCtx || !videoElement.videoWidth) return;
+            if (!voltoCtx || !videoElement.videoWidth) return;
 
-    voltoCtx.imageSmoothingEnabled = false;
-    voltoCtx.webkitImageSmoothingEnabled = false;
-    voltoCtx.mozImageSmoothingEnabled = false;
-    voltoCtx.msImageSmoothingEnabled = false;
+            voltoCtx.imageSmoothingEnabled = false;
+            voltoCtx.webkitImageSmoothingEnabled = false;
+            voltoCtx.mozImageSmoothingEnabled = false;
+            voltoCtx.msImageSmoothingEnabled = false;
 
-    const w = voltoCanvas.width; 
-    const h = voltoCanvas.height;
+            const w = voltoCanvas.width; 
+            const h = voltoCanvas.height;
 
-    voltoCtx.save();
-    voltoCtx.translate(w, 0);
-    voltoCtx.scale(-1, 1); 
+            voltoCtx.save();
+            voltoCtx.translate(w, 0);
+            voltoCtx.scale(-1, 1); 
 
-    const vW = videoElement.videoWidth; 
-    const vH = videoElement.videoHeight;
-    const scale = Math.max(w / vW, h / vH);
-    const x = (w - vW * scale) / 2; 
-    const y = (h - vH * scale) / 2;
+            const vW = videoElement.videoWidth; 
+            const vH = videoElement.videoHeight;
+            const scale = Math.max(w / vW, h / vH);
+            const x = (w - vW * scale) / 2; 
+            const y = (h - vH * scale) / 2;
 
-    voltoCtx.drawImage(videoElement, x, y, vW * scale, vH * scale);
-    voltoCtx.restore();
+            voltoCtx.drawImage(videoElement, x, y, vW * scale, vH * scale);
+            voltoCtx.restore();
 
-    applyPixelation(voltoCtx, 0, 0, w, h, 25);
-}
+            applyPixelation(voltoCtx, 0, 0, w, h, 25);
+        }
 
-function applyPixelation(ctx, x, y, w, h, factor) {
-    if (factor <= 1) return;
-    
-    ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.mozImageSmoothingEnabled = false;
-    ctx.msImageSmoothingEnabled = false;
-    
-    const tw = Math.max(1, Math.floor(w / factor)); 
-    const th = Math.max(1, Math.floor(h / factor));
-    
-    ctx.drawImage(ctx.canvas, x, y, w, h, 0, 0, tw, th);
-    ctx.drawImage(ctx.canvas, 0, 0, tw, th, x, y, w, h);
-}
-
-       function openVoltoFullscreen() {
-    voltoFullscreen.classList.add('active'); 
-    currentView = 'volto-fullscreen';
-    voltoCanvas.width = 720; 
-    voltoCanvas.height = 1280; 
-    leftEdgeBack.classList.add('force-visible'); 
-}
+        function applyPixelation(ctx, x, y, w, h, factor) {
+            if (factor <= 1) return;
+            
+            ctx.imageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.msImageSmoothingEnabled = false;
+            
+            const tw = Math.max(1, Math.floor(w / factor)); 
+            const th = Math.max(1, Math.floor(h / factor));
+            
+            ctx.drawImage(ctx.canvas, x, y, w, h, 0, 0, tw, th);
+            ctx.drawImage(ctx.canvas, 0, 0, tw, th, x, y, w, h);
+        }
 
         function drawTimeDesignCanvas() {
-    const ctx = animationScreens.time1.ctx; 
-    const w = animationScreens.time1.canvas.width; 
-    const h = animationScreens.time1.canvas.height;
-    const now = performance.now();
-    
-    if(!timeDesignAnimationStart) timeDesignAnimationStart = now;
-    
-    const cycleMS = 10000;
-    const elapsed = (now - timeDesignAnimationStart) % cycleMS;
-    const prog = elapsed / cycleMS;
-    
-    let factor;
-    if (prog < 0.5) {
-        factor = 100 - (prog * 2 * 99);
-    } else {
-        factor = 1 + ((prog - 0.5) * 2 * 99);
-    }
+            const ctx = animationScreens.time1.ctx; 
+            const w = animationScreens.time1.canvas.width; 
+            const h = animationScreens.time1.canvas.height;
+            const now = performance.now();
+            
+            if(!timeDesignAnimationStart) timeDesignAnimationStart = now;
+            
+            const cycleMS = 10000;
+            const elapsed = (now - timeDesignAnimationStart) % cycleMS;
+            const prog = elapsed / cycleMS;
+            
+            let factor;
+            if (prog < 0.5) {
+                factor = 100 - (prog * 2 * 99);
+            } else {
+                factor = 1 + ((prog - 0.5) * 2 * 99);
+            }
 
-    ctx.save(); 
-    ctx.scale(-1,1); 
-    ctx.translate(-w,0); 
-    ctx.drawImage(videoElement,0,0,w,h); 
-    ctx.restore();
-    
-    applyPixelation(ctx, 0, 0, w, h, Math.max(1, factor));
-}
+            ctx.save(); 
+            ctx.scale(-1,1); 
+            ctx.translate(-w,0); 
+            ctx.drawImage(videoElement,0,0,w,h); 
+            ctx.restore();
+            
+            applyPixelation(ctx, 0, 0, w, h, Math.max(1, factor));
+        }
 
-        function openPhotoviz() { 
-    photovizFullscreen.classList.add('active'); 
-    currentView = 'photoviz-open'; 
-    photovizCanvas.width = 720; 
-    photovizCanvas.height = 1280; 
-    leftEdgeBack.classList.add('force-visible');
-}
         function closePhotoviz() { 
-    photovizFullscreen.classList.remove('active'); 
-    imageWrapper.classList.remove('shift-left','shift-right'); 
-    btn2004.classList.remove('active-state'); 
-    btn2023.classList.remove('active-state');
-    closeAnimationFullscreen('photoviz');
-}
+            photovizFullscreen.classList.remove('active'); 
+            imageWrapper.classList.remove('shift-left','shift-right'); 
+            btn2004.classList.remove('active-state'); 
+            btn2023.classList.remove('active-state');
+            closeAnimationFullscreen('photoviz');
+        }
 
         function drawPhotoviz() {
              const ctx = photovizCtx; const w = photovizCanvas.width; const h = photovizCanvas.height;
@@ -2360,62 +2011,60 @@ function applyPixelation(ctx, x, y, w, h, factor) {
 
         function closeModal() { modalOverlay.classList.remove('visible'); currentModal=null; }
 
+        btnTeoria.addEventListener('click', () => { 
+            if (currentView === 'main-open') {
+                openTeoriaSublevel_Sequenced(); 
+            } 
+            else if (currentView === 'teoria-open') {
+                closeTeoriaLevel_Sequenced(); 
+            }
+            else if (currentView === 'attenzione-open' || currentView === 'timedesign-open' || currentView === 'rallentare-open') {
+                handleBackButton(); 
+            }
+        });
 
-btnTeoria.addEventListener('click', () => { 
-    if (currentView === 'main-open') {
-        openTeoriaSublevel_Sequenced(); 
-    } 
-    else if (currentView === 'teoria-open') {
-        closeTeoriaLevel_Sequenced(); 
-    }
-    else if (currentView === 'attenzione-open' || currentView === 'timedesign-open' || currentView === 'rallentare-open') {
-        handleBackButton(); 
-    }
-});
+        att1.addEventListener('click', () => { 
+            if(currentView === 'attenzione-open') liftCardAndOpen('att-1', openVoltoFullscreen); 
+        });
+        att2.addEventListener('click', () => { 
+            if(currentView === 'attenzione-open') liftCardAndOpen('att-2', openPhotoviz); 
+        });
 
+        time1.addEventListener('click', () => { 
+            if(currentView === 'timedesign-open') liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); 
+        });
+        time2.addEventListener('click', () => { 
+            if(currentView === 'timedesign-open') liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); 
+        });
 
-att1.addEventListener('click', () => { 
-    if(currentView === 'attenzione-open') liftCardAndOpen('att-1', openVoltoFullscreen); 
-});
-att2.addEventListener('click', () => { 
-    if(currentView === 'attenzione-open') liftCardAndOpen('att-2', openPhotoviz); 
-});
+        rall1.addEventListener('click', () => { 
+            if(currentView === 'rallentare-open') liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); 
+        });
+        rall2.addEventListener('click', () => { 
+            if(currentView === 'rallentare-open') liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); 
+        });
+        rall3.addEventListener('click', () => { 
+            if(currentView === 'rallentare-open') liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); 
+        });
+        rall4.addEventListener('click', () => { 
+            if(currentView === 'rallentare-open') liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); 
+        });
 
-time1.addEventListener('click', () => { 
-    if(currentView === 'timedesign-open') liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); 
-});
-time2.addEventListener('click', () => { 
-    if(currentView === 'timedesign-open') liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); 
-});
-
-rall1.addEventListener('click', () => { 
-    if(currentView === 'rallentare-open') liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); 
-});
-rall2.addEventListener('click', () => { 
-    if(currentView === 'rallentare-open') liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); 
-});
-rall3.addEventListener('click', () => { 
-    if(currentView === 'rallentare-open') liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); 
-});
-rall4.addEventListener('click', () => { 
-    if(currentView === 'rallentare-open') liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); 
-});
-
-btnMain.addEventListener('click', () => {
-    if (currentView === 'main-closed' || currentView === 'main-open') {
-        toggle3DMenu();
-    } 
-    else if (sceneContainer.classList.contains('quiete-top')) {
-        if(currentView.includes('fullscreen')) {
-             const key = currentView.split('-')[0];
-             if(animationScreens[key]) closeAnimationFullscreen(key);
-        }
-        if(currentView === 'volto-fullscreen') closeVoltoFullscreen();
-        if(currentView === 'photoviz-open') closePhotoviz();
-        
-        setSceneState('main-open');
-    }
-});     
+        btnMain.addEventListener('click', () => {
+            if (currentView === 'main-closed' || currentView === 'main-open') {
+                toggle3DMenu();
+            } 
+            else if (sceneContainer.classList.contains('quiete-top')) {
+                if(currentView.includes('fullscreen')) {
+                     const key = currentView.split('-')[0];
+                     if(animationScreens[key]) closeAnimationFullscreen(key);
+                }
+                if(currentView === 'volto-fullscreen') closeVoltoFullscreen();
+                if(currentView === 'photoviz-open') closePhotoviz();
+                
+                setSceneState('main-open');
+            }
+        });     
         teoria1.addEventListener('click', () => { if(currentView==='teoria-open') openAttenzioneSublevel_Sequenced(); else if(currentView==='attenzione-open') closeAttenzioneLevel_Sequenced(); });
         teoria2.addEventListener('click', () => { if(currentView==='teoria-open') openTimeDesignSublevel_Sequenced(); else if(currentView==='timedesign-open') closeTimeDesignLevel_Sequenced(); });
         teoria3.addEventListener('click', () => { if(currentView==='teoria-open') openRallentareSublevel_Sequenced(); else if(currentView==='rallentare-open') closeRallentareLevel_Sequenced(); });
@@ -2467,31 +2116,32 @@ btnMain.addEventListener('click', () => {
         btn2023.addEventListener('click', () => handlePhotovizAction('2023'));
         imageWrapper.addEventListener('click', () => handlePhotovizAction('center'));
 
-	btnPinch.addEventListener('click', () => {
-        isPinchEnabled = !isPinchEnabled;
-        if(isPinchEnabled) {
-            btnPinch.classList.add('active');
-            indexDot.style.display = 'block';
-            thumbDot.style.display = 'block';
-        } else {
-            btnPinch.classList.remove('active');
-            indexDot.style.display = 'none';
-            thumbDot.style.display = 'none';
-        }
-    }); 
+        btnPinch.addEventListener('click', () => {
+            isPinchEnabled = !isPinchEnabled;
+            if(isPinchEnabled) {
+                btnPinch.classList.add('active');
+                indexDot.style.display = 'block';
+                thumbDot.style.display = 'block';
+            } else {
+                btnPinch.classList.remove('active');
+                indexDot.style.display = 'none';
+                thumbDot.style.display = 'none';
+            }
+        }); 
 
-    btnPratica.addEventListener('click', () => { 
-        if (currentView === 'main-open') {
-            openPraticaLevel(); 
-        } 
-        else if (currentView === 'pratica-open') {
-            closePraticaLevel();
-        }
-    });
-        
-	leftEdgeBack.addEventListener('click', handleBackButton);
+        btnPratica.addEventListener('click', () => { 
+            if (currentView === 'main-open') {
+                openPraticaLevel(); 
+            } 
+            else if (currentView === 'pratica-open') {
+                closePraticaLevel();
+            }
+        });
+            
+        leftEdgeBack.addEventListener('click', handleBackButton);
         
         modalOverlay.addEventListener('click', closeModal);
+
         function animationLoop() {
             if (isAppActive || particles.length > 0) {
                 globalCtx.clearRect(0, 0, globalCanvas.width, globalCanvas.height);
@@ -2508,7 +2158,6 @@ btnMain.addEventListener('click', () => {
             }
         }
 
-        // AGGIUNTA: Variabili per gestire la scritta in modo indipendente
         let hintScrollCount = 0;
         let hintRemoved = false;
 
@@ -2522,10 +2171,8 @@ btnMain.addEventListener('click', () => {
                     webcamPlaceholder.style.display = 'none';
                     webcamFeed.style.display = 'block';
                     
-             
                     setTimeout(() => {
                         const hint = document.getElementById('hint-wrapper');
-           
                         if (hint && !hintRemoved) hint.style.opacity = '1';
                     }, 1000);
                     
@@ -2538,7 +2185,6 @@ btnMain.addEventListener('click', () => {
                         pointOfNoReturn = true; 
                         
                         canvasLayer.classList.add('fade-out');
-                        
                         logoContainer.classList.add('fade-out'); 
                         phoneContainerElement.style.opacity = '0';
                         
@@ -2560,7 +2206,7 @@ btnMain.addEventListener('click', () => {
                     }
                     return;
                 }
-           
+            
                 if (!hintRemoved) {
                     const hint = document.getElementById('hint-wrapper');
                     if (hint && hint.style.opacity === '1') {
@@ -2580,7 +2226,6 @@ btnMain.addEventListener('click', () => {
                 }
             }
             pinchCooldown = true;
-            // Aumentiamo leggermente il cooldown per evitare che un singolo gesto conti come molti scroll per la scritta
             setTimeout(() => pinchCooldown = false, COOLDOWN_MS); 
         }
 
@@ -2597,126 +2242,120 @@ btnMain.addEventListener('click', () => {
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
         hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
         
-      
-
- hands.onResults((res) => {
-    if (!isAppActive || !isPinchEnabled) {
-        indexDot.style.display = 'none'; thumbDot.style.display = 'none'; return;
-    }
-    
-    if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
-        indexDot.style.display = 'block'; thumbDot.style.display = 'block';
-        const lm = res.multiHandLandmarks[0];
-        const iPos = mapToScreen(lm[8].x, lm[8].y);
-        const tPos = mapToScreen(lm[4].x, lm[4].y);
-        
-        indexDot.style.left = iPos.x+'px'; indexDot.style.top = iPos.y+'px';
-        thumbDot.style.left = tPos.x+'px'; thumbDot.style.top = tPos.y+'px';
-        
-        [btnMain, btnTeoria, btnPratica, btnEspansioni, teoria1, teoria2, teoria3, att1, att2, time1, time2, rall1, rall2, rall3, rall4, btn2004, btn2023, imageWrapper].forEach(b => {
-     if(b) b.classList.remove('hover');
-});
-
-        const isPinch = dist3D(lm[8], lm[4]) < PINCH_THRESHOLD;
-        
-        if(isPinch) { 
-            indexDot.classList.add('pinching'); thumbDot.classList.add('pinching'); 
+        hands.onResults((res) => {
+            if (!isAppActive || !isPinchEnabled) {
+                indexDot.style.display = 'none'; thumbDot.style.display = 'none'; return;
+            }
             
-            const checkInteract = (el) => {
-                if(!el) return false;
-                const r = el.getBoundingClientRect();
-                if (r.width === 0 && r.height === 0) return false;
-                return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
-            };
-
-            const isOverLeft = iPos.x <= 80 && (leftEdgeBack.classList.contains('is-active') || leftEdgeBack.classList.contains('force-visible'));
-
-            if(!pinchCooldown) {
-
-                if (isOverLeft) {
-                    handleBackButton();
-                    pinchCooldown = true; setTimeout(()=>pinchCooldown=false,1000); 
-                    return;
-                }
-
-
-                if(checkInteract(btnPinch)) { btnPinch.click(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
-                if(checkInteract(hamburgerBtn)) { toggleMenu(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
+            if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
+                indexDot.style.display = 'block'; thumbDot.style.display = 'block';
+                const lm = res.multiHandLandmarks[0];
+                const iPos = mapToScreen(lm[8].x, lm[8].y);
+                const tPos = mapToScreen(lm[4].x, lm[4].y);
                 
-
-                if (logoCompleted) {
-                    if (currentView === 'main-closed') {
-                        if (checkInteract(btnMain)) toggle3DMenu();
-                    } 
-                    else if (currentView === 'main-open') {
-                        if (checkInteract(btnMain)) toggle3DMenu();
-                        else if (checkInteract(btnTeoria)) openTeoriaSublevel_Sequenced();
-                        else if (checkInteract(btnPratica)) openPraticaLevel();
-                    }
-                    else if (currentView === 'teoria-open') {
-                        if (checkInteract(teoria1)) openAttenzioneSublevel_Sequenced();
-                        else if (checkInteract(teoria2)) openTimeDesignSublevel_Sequenced();
-                        else if (checkInteract(teoria3)) openRallentareSublevel_Sequenced();
-                    }
-                    else if (currentView === 'pratica-open') {
-                    }
-                    else if (currentView === 'attenzione-open') {
-                        if (checkInteract(att1)) { liftCardAndOpen('att-1', openVoltoFullscreen); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                        else if (checkInteract(att2)) { liftCardAndOpen('att-2', openPhotoviz); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                    }
-                    else if (currentView === 'timedesign-open') {
-                        if (checkInteract(time1)) { liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                        else if (checkInteract(time2)) { liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                    }
-                    else if (currentView === 'rallentare-open') {
-                        if (checkInteract(rall1)) { liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                        else if (checkInteract(rall2)) { liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                        else if (checkInteract(rall3)) { liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                        else if (checkInteract(rall4)) { liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
-                    }
-                }
-
-                if (!logoCompleted && !isMenuOpen) {
-                    if (!isPinchingState) { 
-                        isPinchingState = true; 
-                        pinchStartY = iPos.y; 
-                    } else if ((pinchStartY - iPos.y) > PINCH_DRAG_THRESHOLD) {
-                        handleDragAction(); 
-                        isPinchingState = false;
-                        pinchStartY = iPos.y; 
-                    }
-                }
-            }
-        } else {
-            indexDot.classList.remove('pinching'); thumbDot.classList.remove('pinching');
-            isPinchingState = false;
-
-            if(logoCompleted && sceneContainer.classList.contains('visible')) {
-                 const checkHover = (el) => {
-                    if(!el) return false;
-                    const r = el.getBoundingClientRect();
-                    return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
-                };
-
-                if(currentView==='main-open') {
-                     if(checkHover(btnMain)) btnMain.classList.add('hover');
-                     if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
-                     if(checkHover(btnPratica)) btnPratica.classList.add('hover');
-                     if(checkHover(btnEspansioni)) btnEspansioni.classList.add('hover');
-                }
-                if(currentView==='teoria-open') {
-                     if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
-                     if(checkHover(teoria1)) teoria1.classList.add('hover');
-                     if(checkHover(teoria2)) teoria2.classList.add('hover');
-                     if(checkHover(teoria3)) teoria3.classList.add('hover');
-                }
+                indexDot.style.left = iPos.x+'px'; indexDot.style.top = iPos.y+'px';
+                thumbDot.style.left = tPos.x+'px'; thumbDot.style.top = tPos.y+'px';
                 
+                [btnMain, btnTeoria, btnPratica, btnEspansioni, teoria1, teoria2, teoria3, att1, att2, time1, time2, rall1, rall2, rall3, rall4, btn2004, btn2023, imageWrapper].forEach(b => {
+                    if(b) b.classList.remove('hover');
+                });
+
+                const isPinch = dist3D(lm[8], lm[4]) < PINCH_THRESHOLD;
+                
+                if(isPinch) { 
+                    indexDot.classList.add('pinching'); thumbDot.classList.add('pinching'); 
+                    
+                    const checkInteract = (el) => {
+                        if(!el) return false;
+                        const r = el.getBoundingClientRect();
+                        if (r.width === 0 && r.height === 0) return false;
+                        return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
+                    };
+
+                    const isOverLeft = iPos.x <= 80 && (leftEdgeBack.classList.contains('is-active') || leftEdgeBack.classList.contains('force-visible'));
+
+                    if(!pinchCooldown) {
+
+                        if (isOverLeft) {
+                            handleBackButton();
+                            pinchCooldown = true; setTimeout(()=>pinchCooldown=false,1000); 
+                            return;
+                        }
+
+                        if(checkInteract(btnPinch)) { btnPinch.click(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
+                        if(checkInteract(hamburgerBtn)) { toggleMenu(); pinchCooldown=true; setTimeout(()=>pinchCooldown=false,1000); return; }
+                        
+                        if (logoCompleted) {
+                            if (currentView === 'main-closed') {
+                                if (checkInteract(btnMain)) toggle3DMenu();
+                            } 
+                            else if (currentView === 'main-open') {
+                                if (checkInteract(btnMain)) toggle3DMenu();
+                                else if (checkInteract(btnTeoria)) openTeoriaSublevel_Sequenced();
+                                else if (checkInteract(btnPratica)) openPraticaLevel();
+                            }
+                            else if (currentView === 'teoria-open') {
+                                if (checkInteract(teoria1)) openAttenzioneSublevel_Sequenced();
+                                else if (checkInteract(teoria2)) openTimeDesignSublevel_Sequenced();
+                                else if (checkInteract(teoria3)) openRallentareSublevel_Sequenced();
+                            }
+                            else if (currentView === 'attenzione-open') {
+                                if (checkInteract(att1)) { liftCardAndOpen('att-1', openVoltoFullscreen); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                                else if (checkInteract(att2)) { liftCardAndOpen('att-2', openPhotoviz); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                            }
+                            else if (currentView === 'timedesign-open') {
+                                if (checkInteract(time1)) { liftCardAndOpen('time-1', () => openAnimationFullscreen('time1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                                else if (checkInteract(time2)) { liftCardAndOpen('time-2', () => openAnimationFullscreen('time2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                            }
+                            else if (currentView === 'rallentare-open') {
+                                if (checkInteract(rall1)) { liftCardAndOpen('rall-1', () => openAnimationFullscreen('rall1')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                                else if (checkInteract(rall2)) { liftCardAndOpen('rall-2', () => openAnimationFullscreen('rall2')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                                else if (checkInteract(rall3)) { liftCardAndOpen('rall-3', () => openAnimationFullscreen('rall3')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                                else if (checkInteract(rall4)) { liftCardAndOpen('rall-4', () => openAnimationFullscreen('rall4')); pinchCooldown = true; setTimeout(() => pinchCooldown = false, 1000); }
+                            }
+                        }
+
+                        if (!logoCompleted && !isMenuOpen) {
+                            if (!isPinchingState) { 
+                                isPinchingState = true; 
+                                pinchStartY = iPos.y; 
+                            } else if ((pinchStartY - iPos.y) > PINCH_DRAG_THRESHOLD) {
+                                handleDragAction(); 
+                                isPinchingState = false;
+                                pinchStartY = iPos.y; 
+                            }
+                        }
+                    }
+                } else {
+                    indexDot.classList.remove('pinching'); thumbDot.classList.remove('pinching');
+                    isPinchingState = false;
+
+                    if(logoCompleted && sceneContainer.classList.contains('visible')) {
+                        const checkHover = (el) => {
+                            if(!el) return false;
+                            const r = el.getBoundingClientRect();
+                            return iPos.x >= r.left && iPos.x <= r.right && iPos.y >= r.top && iPos.y <= r.bottom;
+                        };
+
+                        if(currentView==='main-open') {
+                            if(checkHover(btnMain)) btnMain.classList.add('hover');
+                            if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
+                            if(checkHover(btnPratica)) btnPratica.classList.add('hover');
+                            if(checkHover(btnEspansioni)) btnEspansioni.classList.add('hover');
+                        }
+                        if(currentView==='teoria-open') {
+                            if(checkHover(btnTeoria)) btnTeoria.classList.add('hover');
+                            if(checkHover(teoria1)) teoria1.classList.add('hover');
+                            if(checkHover(teoria2)) teoria2.classList.add('hover');
+                            if(checkHover(teoria3)) teoria3.classList.add('hover');
+                        }
+                        
+                    }
+                }
+            } else { 
+                indexDot.style.display='none'; thumbDot.style.display='none'; 
             }
-        }
-    } else { 
-        indexDot.style.display='none'; thumbDot.style.display='none'; 
-    }
-});
+        });
 
         const camera = new Camera(videoElement, {
             onFrame: async () => { await hands.send({image: videoElement}); },
@@ -2746,52 +2385,47 @@ btnMain.addEventListener('click', () => {
 
         window.addEventListener('resize', () => { globalCanvas.width = window.innerWidth; globalCanvas.height = window.innerHeight; });
 
+        function checkDirectNavigation() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
 
-function checkDirectNavigation() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
+            if (mode === 'pratica') {
+                currentScene = 2;
+                logoCompleted = true;
+                pointOfNoReturn = true;
+                isAppActive = true;
 
-    if (mode === 'pratica') {
+                const logoContainer = document.getElementById('logo-container');
+                const phoneContainer = document.getElementById('phone-container');
+                const textQuestion = document.getElementById('text-question');
+                const topBar = document.getElementById('top-bar');
 
-        currentScene = 2;
-        logoCompleted = true;
-        pointOfNoReturn = true;
-        isAppActive = true;
+                if(logoContainer) logoContainer.style.display = 'none';
+                if(phoneContainer) phoneContainer.style.display = 'none';
+                if(textQuestion) textQuestion.style.display = 'none';
+                if(topBar) topBar.style.display = 'none';
 
+                const controlsContainer = document.getElementById('controls-container');
+                if(controlsContainer) controlsContainer.classList.add('visible');
 
-        const logoContainer = document.getElementById('logo-container');
-        const phoneContainer = document.getElementById('phone-container');
-        const textQuestion = document.getElementById('text-question');
-        const topBar = document.getElementById('top-bar');
+                const sceneContainer = document.getElementById('scene-container');
+                if(sceneContainer) {
+                    sceneContainer.style.display = 'block';
+                    sceneContainer.style.opacity = '1';
+                    sceneContainer.style.transform = 'translateY(0)';
+                    sceneContainer.classList.add('visible');
+                    setSceneState('pratica-open');
+                }
 
-        if(logoContainer) logoContainer.style.display = 'none';
-        if(phoneContainer) phoneContainer.style.display = 'none';
-        if(textQuestion) textQuestion.style.display = 'none';
-        if(topBar) topBar.style.display = 'none';
-
-        const controlsContainer = document.getElementById('controls-container');
-        if(controlsContainer) controlsContainer.classList.add('visible');
-
-        const sceneContainer = document.getElementById('scene-container');
-        if(sceneContainer) {
-            sceneContainer.style.display = 'block';
-            sceneContainer.style.opacity = '1';
-            sceneContainer.style.transform = 'translateY(0)';
-            sceneContainer.classList.add('visible');
-            
-            setSceneState('pratica-open');
+                const btnMain = document.getElementById('btn-main');
+                if(btnMain) {
+                    btnMain.innerHTML = '<img src="QUIeTE.png" style="width: 310px; height: auto; image-rendering: pixelated; pointer-events: none;" alt="QUIeTE">';
+                }
+                
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
-
-        const btnMain = document.getElementById('btn-main');
-        if(btnMain) {
-            btnMain.innerHTML = '<img src="QUIeTE.png" style="width: 310px; height: auto; image-rendering: pixelated; pointer-events: none;" alt="QUIeTE">';
-        }
-        
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-}
-checkDirectNavigation();
-
+        checkDirectNavigation();
     </script>
 </body>
 </html>
