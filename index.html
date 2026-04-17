@@ -1878,10 +1878,14 @@ sceneContainer.classList.remove('level-teoria-open');
             
             setTimeout(() => {
                 btnCanvas.classList.add('show-canvas');
-                particles.forEach(p => p.isDead = true);
-                particles = []; 
+                particles.forEach(p => {
+                    if (p.movingToLogo) {
+                        p.isDead = true; 
+                    }
+                });
+                particles = particles.filter(p => !p.isDead);
             }, 2000);
-
+			
         function formFinalLogo() {
             if (logoFormed) return;
             
